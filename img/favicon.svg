@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" role="img" aria-label="Jakub & Michał">
+  <!-- Tło = kolor akcentu strony -->
+  <rect width="32" height="32" rx="7" fill="#2b2bff"/>
+  <!-- Ampersand w serifie (Fraunces, gdy dostępny; w faviconie webfont się nie ładuje,
+       więc fallback Georgia/Times daje spójny, serifowy charakter). Italic dla charakteru. -->
+  <text x="16" y="16.5" fill="#ffffff"
+        font-family="Fraunces, Georgia, 'Times New Roman', serif"
+        font-size="23" font-style="italic" font-weight="600"
+        text-anchor="middle" dominant-baseline="central">&amp;</text>
+</svg>

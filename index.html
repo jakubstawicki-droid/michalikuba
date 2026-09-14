@@ -1,0 +1,1315 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<!-- Zasada projektu: treść widoczna DOMYŚLNIE, animacja to tylko wzbogacenie.
+     Ten skrypt musi być w <head> i wykonać się przed malowaniem:
+     1) oznacza <html class="js"> — CSS chowa .reveal WYŁĄCZNIE gdy JS działa;
+     2) definiuje fallbacki onerror ZANIM parser dojdzie do obrazków (żeby onerror
+        nie rzucał ReferenceError, gdy pliku brak). -->
+<script>
+  document.documentElement.className += " js";
+  function shotFail(img){
+    img.style.display = "none";
+    var shot = img.closest(".shot"); if(!shot) return;
+    var mob = shot.querySelector(".shot-mob"); if(mob) mob.style.display = "none";
+    var ph = shot.querySelector(".shot-ph"); if(ph) ph.hidden = false;
+  }
+  function logoFail(img){
+    img.style.display = "none";
+    var ph = img.parentNode.querySelector(".client-logo-ph"); if(ph) ph.hidden = false;
+  }
+  function photoFail(img){
+    img.style.display = "none";
+    var ph = img.parentNode.querySelector(".ph"); if(ph) ph.hidden = false;
+  }
+</script>
+
+<title>Robimy strony i aplikacje webowe — Jakub i Michał, Warszawa</title>
+<meta name="description" content="Jakub i Michał — dwuosobowe studio z Warszawy. Robimy strony internetowe i aplikacje webowe, dowozimy szybko, budujemy rzeczy które działają.">
+
+<!-- ===== Favicon =====
+     favicon.svg = wersja główna (skaluje się ostro). PNG 32px = fallback dla przeglądarek
+     bez obsługi SVG. apple-touch-icon = ekran główny iOS. Kolejność ma znaczenie:
+     przeglądarka z obsługą SVG bierze pierwszy, reszta schodzi do PNG. -->
+<link rel="icon" type="image/svg+xml" href="img/favicon.svg">
+<link rel="icon" type="image/png" sizes="32x32" href="img/favicon-32.png">
+<link rel="apple-touch-icon" sizes="180x180" href="img/apple-touch-icon.png">
+
+<!-- ===== Open Graph (Facebook / Messenger / WhatsApp) =====
+     UWAGA: og:url musi być pełnym, docelowym adresem — podmień [ADRES_STRONY] po wdrożeniu.
+     Linki w WhatsApp/Messenger czytają og:image jako ABSOLUTNY URL — po wdrożeniu zmień
+     na https://twoja-domena/img/og-cover.jpg (względna ścieżka bywa ignorowana przez scrapery). -->
+<meta property="og:type" content="website">
+<meta property="og:locale" content="pl_PL">
+<meta property="og:site_name" content="Jakub & Michał">
+<meta property="og:title" content="Robimy strony i aplikacje webowe, które działają">
+<meta property="og:description" content="Dwuosobowe studio z Warszawy. Konkurs dla Wolters Kluwer, platforma zapisów dla fundacji z 700 dzieci. Brief → wycena w 48h.">
+<meta property="og:url" content="[ADRES_STRONY]">
+<!-- og:image do przygotowania w grafice — patrz specyfikacja przekazana osobno. Docelowo absolutny URL. -->
+<meta property="og:image" content="img/og-cover.jpg">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="Jakub & Michał — strony i aplikacje webowe, Warszawa">
+
+<!-- ===== Twitter / X ===== -->
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Robimy strony i aplikacje webowe, które działają">
+<meta name="twitter:description" content="Dwuosobowe studio z Warszawy. Konkurs dla Wolters Kluwer, platforma zapisów dla fundacji z 700 dzieci. Brief → wycena w 48h.">
+<meta name="twitter:image" content="img/og-cover.jpg">
+<meta name="twitter:image:alt" content="Jakub & Michał — strony i aplikacje webowe, Warszawa">
+
+<!-- Fraunces: font zmienny. Prosimy o zakres osi opsz/wght/SOFT/WONK i sterujemy nimi
+     przez font-variation-settings (WONK 0, SOFT umiarkowany, opsz dopasowany do rozmiaru).
+     Kolejność osi w URL: alfabetycznie, osie zarejestrowane (małe litery) przed własnymi. -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght,SOFT,WONK@9..144,400..700,0..100,0..1&family=Inter+Tight:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+<style>
+/* ============================================================
+   ZMIENNE / BAZA
+   ============================================================ */
+:root{
+  --bg:            #faf9f6;   /* ciepły off-white */
+  --bg-2:          #f2f0ea;   /* delikatnie ciemniejsza sekcja */
+  --surface:       #ffffff;
+  --ink:           #1a1917;   /* prawie-czarny, ciepły */
+  --ink-soft:      #565248;   /* tekst drugorzędny */
+  --ink-faint:     #8a8478;
+  --line:          #e4e0d6;   /* obrysy / separatory */
+  --line-strong:   #d3cec1;
+  --accent:        #2b2bff;   /* atramentowy indygo */
+  --accent-ink:    #1f1fd6;
+  --accent-wash:   #eeeeff;   /* jasne tło akcentu */
+  --accent-line:   #c9c9ff;
+  --ok:            #1c7a4f;
+  --err:           #c02626;
+  --err-wash:      #fdecec;
+
+  --radius:        14px;
+  --radius-lg:     20px;
+  --maxw:          1120px;
+  --gutter:        clamp(20px, 5vw, 48px);
+
+  --shadow-sm:     0 1px 2px rgba(26,25,23,.04), 0 2px 8px rgba(26,25,23,.05);
+  --shadow-md:     0 4px 12px rgba(26,25,23,.06), 0 12px 32px rgba(26,25,23,.08);
+
+  /* Fraunces – dobrane ostrożnie. WONK 0, SOFT umiarkowany.
+     opsz nadpisujemy per element wg realnego rozmiaru. */
+  --fr-soft: 40;
+  --fr-wonk: 0;
+}
+
+*,*::before,*::after{ box-sizing:border-box; }
+
+html{ scroll-behavior:smooth; -webkit-text-size-adjust:100%; }
+@media (prefers-reduced-motion: reduce){ html{ scroll-behavior:auto; } }
+
+body{
+  margin:0;
+  background:var(--bg);
+  color:var(--ink);
+  font-family:"Inter Tight", system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+  font-size:clamp(16px, 1rem + .15vw, 18px);
+  line-height:1.6;
+  font-weight:400;
+  letter-spacing:-0.005em;
+  -webkit-font-smoothing:antialiased;
+  text-rendering:optimizeLegibility;
+}
+
+img{ max-width:100%; display:block; }
+a{ color:inherit; }
+
+/* ============================================================
+   TYPOGRAFIA NAGŁÓWKÓW — FRAUNCES (tylko tu i w liczbach cennika)
+   ============================================================ */
+.h-serif{
+  font-family:"Fraunces", Georgia, "Times New Roman", serif;
+  font-weight:650;
+  font-variation-settings:"SOFT" var(--fr-soft), "WONK" var(--fr-wonk), "opsz" 40;
+  letter-spacing:-0.02em;
+  line-height:1.08;
+  color:var(--ink);
+}
+
+.container{
+  width:100%;
+  max-width:var(--maxw);
+  margin-inline:auto;
+  padding-inline:var(--gutter);
+}
+
+section{ padding-block:clamp(56px, 9vw, 112px); }
+
+.eyebrow{
+  font-size:.8rem;
+  font-weight:600;
+  letter-spacing:.12em;
+  text-transform:uppercase;
+  color:var(--accent-ink);
+  margin:0 0 14px;
+}
+.section-head{ max-width:56ch; margin-bottom:clamp(32px, 5vw, 56px); }
+.section-head h2{
+  font-family:"Fraunces", Georgia, serif;
+  font-weight:650;
+  font-variation-settings:"SOFT" var(--fr-soft), "WONK" var(--fr-wonk), "opsz" 60;
+  font-size:clamp(1.9rem, 1.3rem + 3vw, 3rem);
+  letter-spacing:-0.022em;
+  line-height:1.05;
+  margin:0 0 .5em;
+}
+.section-head p{ color:var(--ink-soft); font-size:1.05rem; margin:0; }
+
+/* ============================================================
+   PRZYCISKI
+   ============================================================ */
+.btn{
+  display:inline-flex; align-items:center; gap:.55em;
+  font-family:inherit; font-size:1rem; font-weight:600;
+  padding:14px 24px; border-radius:999px;
+  border:1px solid transparent; cursor:pointer;
+  text-decoration:none; line-height:1;
+  transition:transform .15s ease, background .15s ease, border-color .15s ease, box-shadow .15s ease;
+  min-height:52px;
+}
+.btn-primary{ background:var(--accent); color:#fff; }
+.btn-primary:hover{ background:var(--accent-ink); transform:translateY(-1px); }
+.btn-ghost{ background:transparent; color:var(--ink); border-color:var(--line-strong); }
+.btn-ghost:hover{ border-color:var(--ink); transform:translateY(-1px); }
+.btn:focus-visible{ outline:3px solid var(--accent-line); outline-offset:2px; }
+.btn .arrow{ transition:transform .15s ease; }
+.btn:hover .arrow{ transform:translateX(3px); }
+
+/* ============================================================
+   NAV
+   ============================================================ */
+header.nav{
+  position:sticky; top:0; z-index:50;
+  background:color-mix(in srgb, var(--bg) 88%, transparent);
+  backdrop-filter:saturate(140%) blur(10px);
+  border-bottom:1px solid transparent;
+  transition:border-color .2s ease, background .2s ease;
+}
+header.nav.scrolled{ border-bottom-color:var(--line); }
+.nav-inner{ display:flex; align-items:center; justify-content:space-between; min-height:64px; }
+.brand{ font-family:"Fraunces",serif; font-weight:650;
+  font-variation-settings:"SOFT" var(--fr-soft),"WONK" var(--fr-wonk),"opsz" 28;
+  font-size:1.15rem; letter-spacing:-0.02em; text-decoration:none; }
+.brand .dot{ color:var(--accent); }
+.nav-links{ display:none; gap:28px; align-items:center; }
+.nav-links a{ text-decoration:none; color:var(--ink-soft); font-weight:500; font-size:.95rem; transition:color .15s ease; }
+.nav-links a:hover{ color:var(--ink); }
+.nav-cta{ display:none; }
+@media (min-width:840px){
+  .nav-links{ display:flex; }
+  .nav-cta{ display:inline-flex; }
+}
+
+/* ============================================================
+   HERO
+   ============================================================ */
+.hero{ padding-top:clamp(48px, 8vw, 96px); padding-bottom:clamp(40px, 7vw, 80px); }
+.hero .kicker{
+  display:inline-flex; align-items:center; gap:8px;
+  font-size:.85rem; font-weight:500; color:var(--ink-soft);
+  background:var(--surface); border:1px solid var(--line);
+  padding:7px 14px; border-radius:999px; margin-bottom:26px;
+}
+.hero .kicker .pulse{ width:8px; height:8px; border-radius:50%; background:var(--ok); box-shadow:0 0 0 0 rgba(28,122,79,.5); }
+@media (prefers-reduced-motion: no-preference){
+  .hero .kicker .pulse{ animation:pulse 2.4s ease-out infinite; }
+  @keyframes pulse{ 0%{box-shadow:0 0 0 0 rgba(28,122,79,.45);} 70%{box-shadow:0 0 0 9px rgba(28,122,79,0);} 100%{box-shadow:0 0 0 0 rgba(28,122,79,0);} }
+}
+.hero h1{
+  font-family:"Fraunces",serif; font-weight:600;
+  font-variation-settings:"SOFT" 50, "WONK" 0, "opsz" 144;
+  font-size:clamp(2.6rem, 1.6rem + 6vw, 5.2rem);
+  line-height:1.02; letter-spacing:-0.03em; margin:0 0 .35em; max-width:16ch;
+}
+.hero h1 em{ font-style:italic; font-variation-settings:"SOFT" 60,"WONK" 0,"opsz" 144; color:var(--accent); }
+.hero .lead{ font-size:clamp(1.1rem, 1rem + .5vw, 1.35rem); color:var(--ink-soft); max-width:52ch; margin:0 0 14px; }
+.hero .proof{
+  font-size:1.02rem; color:var(--ink); max-width:54ch; margin:0 0 32px;
+  padding-left:16px; border-left:3px solid var(--accent);
+}
+.hero .proof strong{ font-weight:600; }
+.hero-actions{ display:flex; flex-wrap:wrap; gap:14px; }
+
+/* ============================================================
+   REVEAL (IntersectionObserver)
+   ============================================================ */
+/* Domyślnie WIDOCZNE. Ukrywamy do animacji tylko, gdy JS działa (html.js).
+   Jeśli JS padnie albo IO nie wystrzeli — treść i tak jest na ekranie. */
+.reveal{ opacity:1; transform:none; }
+.js .reveal{ opacity:0; transform:translateY(18px); transition:opacity .6s ease, transform .6s ease; }
+.js .reveal.in{ opacity:1; transform:none; }
+/* Failsafe: gdy IO nie strzela, odsłaniamy NATYCHMIAST, bez zależności od transition. */
+.reveal-now .reveal{ opacity:1 !important; transform:none !important; transition:none !important; }
+@media (prefers-reduced-motion: reduce){
+  .js .reveal{ opacity:1 !important; transform:none !important; transition:none !important; }
+}
+
+/* ============================================================
+   PORTFOLIO
+   ============================================================ */
+#portfolio{ background:var(--bg-2); }
+.work-grid{ display:grid; gap:22px; }
+
+.work-card{
+  background:var(--surface); border:1px solid var(--line);
+  border-radius:var(--radius-lg); overflow:hidden;
+  transition:transform .2s ease, box-shadow .2s ease, border-color .2s ease;
+  display:flex; flex-direction:column;
+}
+.work-card:hover{ transform:translateY(-3px); box-shadow:var(--shadow-md); border-color:var(--line-strong); }
+
+.work-body{ padding:clamp(22px, 4vw, 36px); display:flex; flex-direction:column; gap:16px; flex:1; }
+.work-meta{ display:flex; align-items:center; gap:10px; flex-wrap:wrap; }
+.badge{
+  font-size:.72rem; font-weight:600; letter-spacing:.08em; text-transform:uppercase;
+  padding:5px 10px; border-radius:999px; background:var(--bg-2); color:var(--ink-soft); border:1px solid var(--line);
+}
+.badge.accent{ background:var(--accent); color:#fff; border-color:var(--accent); }
+.badge.own{ background:var(--accent-wash); color:var(--accent-ink); border-color:var(--accent-line); }
+
+.work-card h3{
+  font-family:"Fraunces",serif; font-weight:650;
+  font-variation-settings:"SOFT" var(--fr-soft),"WONK" var(--fr-wonk),"opsz" 30;
+  font-size:1.5rem; line-height:1.1; letter-spacing:-0.02em; margin:0;
+}
+.work-client{ font-size:.9rem; color:var(--ink-faint); font-weight:500; margin:-8px 0 0; }
+.work-card p.desc{ margin:0; color:var(--ink-soft); font-size:1rem; }
+.tags{ display:flex; flex-wrap:wrap; gap:8px; margin-top:auto; }
+.tag{ font-size:.8rem; font-weight:500; color:var(--ink-soft); background:var(--bg); border:1px solid var(--line); padding:5px 11px; border-radius:8px; }
+.work-link{
+  display:inline-flex; align-items:center; gap:7px; align-self:flex-start;
+  font-weight:600; color:var(--accent-ink); text-decoration:none; font-size:.98rem;
+}
+.work-link:hover{ text-decoration:underline; }
+.work-link .arrow{ transition:transform .15s ease; }
+.work-link:hover .arrow{ transform:translate(2px,-2px); }
+
+/* ---- Kompozycja screenshotów: mobile nachodzi na prawy-dolny róg desktopu ---- */
+.shot{
+  position:relative; aspect-ratio:16/10; overflow:hidden;
+  border-bottom:1px solid var(--line); background:var(--bg-2);
+}
+.shot-desk{
+  position:absolute; inset:0; width:100%; height:100%;
+  object-fit:cover; object-position:top center; display:block;
+}
+.shot-mob{
+  position:absolute; right:14px; bottom:0;
+  width:26%; max-width:132px; height:auto;
+  border-radius:12px 12px 0 0; border:3px solid var(--surface); border-bottom:none;
+  box-shadow:0 8px 24px rgba(26,25,23,.22);
+  object-fit:cover; object-position:top center; display:block; z-index:2;
+}
+/* Placeholder na screenshot — czysty, celowo oznaczony (gdy brak plików) */
+.shot-ph{
+  position:absolute; inset:0; background:
+    repeating-linear-gradient(45deg, var(--bg-2) 0 12px, #ece9e1 12px 24px);
+  display:flex; align-items:center; justify-content:center; text-align:center; z-index:3;
+}
+.shot-ph span{
+  font-size:.8rem; font-weight:600; letter-spacing:.06em; text-transform:uppercase;
+  color:var(--ink-faint); background:var(--surface); border:1px dashed var(--line-strong);
+  padding:8px 14px; border-radius:8px;
+}
+
+/* Znacznik „Prowadził:" — dyskretny, nie konkuruje z nazwą projektu */
+.prowadzil{
+  display:inline-flex; align-items:center; gap:6px;
+  font-size:.82rem; font-weight:500; color:var(--ink-faint);
+}
+.prowadzil b{ font-weight:600; color:var(--ink-soft); }
+.prowadzil .who-dot{ width:5px; height:5px; border-radius:50%; background:var(--accent); flex:none; }
+
+/* Karta wyróżniona (Wolters Kluwer) — pełna szerokość */
+.work-card.feature{ border-color:var(--accent-line); box-shadow:0 0 0 1px var(--accent-line), var(--shadow-sm); }
+.work-card.feature .feature-inner{ display:grid; }
+@media (min-width:820px){
+  .work-card.feature .feature-inner{ grid-template-columns:1.05fr 1fr; }
+  .work-card.feature .shot{ border-bottom:none; border-left:1px solid var(--line); aspect-ratio:auto; min-height:100%; }
+}
+.work-card.feature h3{ font-size:clamp(1.6rem, 1.2rem + 1.5vw, 2.1rem);
+  font-variation-settings:"SOFT" var(--fr-soft),"WONK" var(--fr-wonk),"opsz" 48; }
+
+/* Placeholder na logo klienta */
+.client-logo-ph{
+  display:inline-flex; align-items:center; gap:10px;
+  border:1px dashed var(--accent-line); background:var(--accent-wash);
+  color:var(--accent-ink); font-size:.78rem; font-weight:600; letter-spacing:.04em;
+  padding:9px 14px; border-radius:10px; height:44px;
+}
+.client-logo-ph .box{ width:24px; height:24px; border-radius:5px; background:var(--accent-line); }
+
+@media (min-width:720px){
+  .work-grid.two{ grid-template-columns:1fr 1fr; }
+}
+
+/* Logo klienta (img z fallbackiem) */
+.client-logo{ height:28px; width:auto; display:inline-block; }
+
+/* ============================================================
+   KTO TO ROBI
+   ============================================================ */
+.who-grid{ display:grid; gap:18px; }
+@media (min-width:640px){ .who-grid{ grid-template-columns:1fr 1fr; } }
+.who-card{
+  background:var(--surface); border:1px solid var(--line); border-radius:var(--radius-lg);
+  padding:26px; display:flex; gap:18px; align-items:flex-start;
+  transition:transform .2s ease, box-shadow .2s ease;
+}
+.who-card:hover{ transform:translateY(-3px); box-shadow:var(--shadow-sm); }
+.who-photo{
+  flex:none; width:84px; height:84px; border-radius:50%; overflow:hidden;
+  position:relative; background:var(--bg-2); border:1px solid var(--line);
+}
+.who-photo img{ position:absolute; inset:0; width:100%; height:100%; object-fit:cover; display:block; }
+.who-photo .ph{
+  position:absolute; inset:0; display:grid; place-items:center; text-align:center;
+  background:repeating-linear-gradient(45deg, var(--bg-2) 0 8px, #ece9e1 8px 16px);
+}
+.who-photo .ph span{ font-size:.6rem; font-weight:600; letter-spacing:.04em; text-transform:uppercase; color:var(--ink-faint); }
+.who-info h3{
+  font-family:"Fraunces",serif; font-weight:650;
+  font-variation-settings:"SOFT" var(--fr-soft),"WONK" var(--fr-wonk),"opsz" 30;
+  font-size:1.4rem; letter-spacing:-0.02em; margin:0 0 2px;
+}
+.who-info .role{ font-size:.8rem; font-weight:600; letter-spacing:.08em; text-transform:uppercase; color:var(--accent-ink); margin:0 0 10px; }
+.who-info p{ margin:0; color:var(--ink-soft); font-size:.98rem; }
+
+/* ============================================================
+   USŁUGI
+   ============================================================ */
+.tiles{ display:grid; gap:18px; }
+@media (min-width:600px){ .tiles{ grid-template-columns:1fr 1fr; } }
+@media (min-width:960px){ .tiles{ grid-template-columns:repeat(4,1fr); } }
+.tile{
+  background:var(--surface); border:1px solid var(--line); border-radius:var(--radius);
+  padding:26px 22px; display:flex; flex-direction:column; gap:12px;
+  transition:transform .2s ease, box-shadow .2s ease;
+}
+.tile:hover{ transform:translateY(-3px); box-shadow:var(--shadow-sm); }
+.tile .num{ font-family:"Fraunces",serif; font-weight:600;
+  font-variation-settings:"SOFT" var(--fr-soft),"WONK" var(--fr-wonk),"opsz" 24;
+  font-size:1.1rem; color:var(--accent); }
+.tile h3{ margin:0; font-size:1.15rem; font-weight:600; letter-spacing:-0.01em; }
+.tile p{ margin:0; color:var(--ink-soft); font-size:.97rem; }
+
+/* ============================================================
+   JAK PRACUJĘ
+   ============================================================ */
+#proces{ background:var(--bg-2); }
+.steps{ display:grid; gap:18px; counter-reset:step; }
+@media (min-width:720px){ .steps{ grid-template-columns:repeat(4,1fr); } }
+.step{
+  background:var(--surface); border:1px solid var(--line); border-radius:var(--radius);
+  padding:24px 20px; position:relative;
+}
+.step .n{
+  font-family:"Fraunces",serif; font-weight:600;
+  font-variation-settings:"SOFT" var(--fr-soft),"WONK" var(--fr-wonk),"opsz" 40;
+  font-size:2rem; color:var(--accent); line-height:1; margin-bottom:12px; display:block;
+}
+.step h3{ margin:0 0 6px; font-size:1.08rem; font-weight:600; }
+.step p{ margin:0; color:var(--ink-soft); font-size:.95rem; }
+.proces-note{
+  margin-top:26px; padding:18px 22px; background:var(--accent-wash);
+  border:1px solid var(--accent-line); border-radius:var(--radius); color:var(--accent-ink);
+  font-weight:500; font-size:1rem;
+}
+.proces-note strong{ font-weight:600; }
+
+/* ============================================================
+   CENNIK
+   ============================================================ */
+.price-grid{ display:grid; gap:18px; }
+@media (min-width:720px){ .price-grid{ grid-template-columns:repeat(3,1fr); } }
+.price-card{
+  background:var(--surface); border:1px solid var(--line); border-radius:var(--radius-lg);
+  padding:30px 26px; display:flex; flex-direction:column; gap:8px;
+}
+.price-card .label{ font-weight:600; font-size:1.05rem; }
+.price-card .amount{
+  font-family:"Fraunces",serif; font-weight:600;
+  font-variation-settings:"SOFT" 50,"WONK" 0,"opsz" 96;
+  font-size:clamp(2.4rem, 1.8rem + 2.5vw, 3.4rem); line-height:1; letter-spacing:-0.03em; color:var(--ink);
+}
+.price-card .amount .od{ font-family:"Inter Tight",sans-serif; font-size:.9rem; font-weight:600; color:var(--ink-faint);
+  display:block; margin-bottom:4px; letter-spacing:0; }
+.price-card .amount .cur{ font-size:.5em; color:var(--ink-soft); }
+.price-card p{ margin:6px 0 0; color:var(--ink-soft); font-size:.95rem; }
+.price-note{ margin-top:24px; font-size:1.05rem; color:var(--ink); font-weight:500; }
+.price-note em{ font-style:normal; color:var(--accent-ink); }
+
+/* ============================================================
+   FORMULARZ — KREATOR
+   ============================================================ */
+#brief{ background:var(--ink); color:#f5f3ee; }
+#brief .section-head h2{ color:#fff; }
+#brief .section-head p{ color:#c9c4b8; }
+#brief .eyebrow{ color:#a9a9ff; }
+
+.wizard{
+  background:var(--surface); color:var(--ink);
+  border-radius:var(--radius-lg); box-shadow:var(--shadow-md);
+  max-width:760px; margin-inline:auto; overflow:hidden;
+}
+.wizard-top{ padding:22px clamp(20px,4vw,34px) 0; }
+.progress-meta{ display:flex; justify-content:space-between; align-items:baseline; margin-bottom:12px; }
+.progress-meta .stepname{ font-weight:600; font-size:1.02rem; }
+.progress-meta .count{ font-size:.85rem; color:var(--ink-faint); font-weight:500; }
+.progress-track{ height:6px; background:var(--bg-2); border-radius:999px; overflow:hidden; }
+.progress-fill{ height:100%; width:25%; background:var(--accent); border-radius:999px; transition:width .35s cubic-bezier(.4,0,.2,1); }
+
+.wizard-body{ padding:clamp(22px,4vw,34px); }
+.step-panel{ display:none; }
+.step-panel.active{ display:block; animation:fade .3s ease; }
+@media (prefers-reduced-motion: no-preference){ @keyframes fade{ from{opacity:0; transform:translateY(6px);} to{opacity:1;transform:none;} } }
+
+.field{ margin-bottom:24px; }
+.field:last-child{ margin-bottom:0; }
+.field > .q{ font-weight:600; font-size:1.05rem; margin:0 0 4px; }
+.field > .hint{ font-size:.88rem; color:var(--ink-faint); margin:0 0 12px; }
+
+/* Kafelki (radio / checkbox) */
+.tile-options{ display:grid; gap:10px; }
+@media (min-width:560px){ .tile-options.cols-2{ grid-template-columns:1fr 1fr; } }
+.opt{
+  position:relative; display:flex; align-items:center; gap:12px;
+  min-height:56px; padding:12px 16px;
+  border:1.5px solid var(--line-strong); border-radius:12px;
+  background:var(--bg); cursor:pointer; user-select:none;
+  transition:border-color .15s ease, background .15s ease, box-shadow .15s ease;
+}
+.opt:hover{ border-color:var(--ink-faint); }
+.opt input{ position:absolute; opacity:0; width:0; height:0; }
+.opt .mark{
+  flex:none; width:22px; height:22px; border:2px solid var(--line-strong);
+  display:grid; place-items:center; transition:all .15s ease; background:#fff;
+}
+.opt .mark.radio{ border-radius:50%; }
+.opt .mark.check{ border-radius:6px; }
+.opt .mark svg{ width:12px; height:12px; opacity:0; transform:scale(.5); transition:all .15s ease; }
+.opt .txt{ font-weight:500; font-size:1rem; line-height:1.3; }
+.opt:focus-within{ outline:3px solid var(--accent-line); outline-offset:2px; }
+.opt.selected{ border-color:var(--accent); background:var(--accent-wash); box-shadow:inset 0 0 0 1px var(--accent); }
+.opt.selected .mark{ border-color:var(--accent); background:var(--accent); }
+.opt.selected .mark svg{ opacity:1; transform:scale(1); }
+
+/* Pola tekstowe */
+label.inp{ display:block; margin-bottom:0; }
+.inp .q{ display:block; font-weight:600; font-size:1rem; margin-bottom:6px; }
+.inp .req{ color:var(--accent-ink); }
+.inp input, .inp textarea{
+  width:100%; font-family:inherit; font-size:1rem; color:var(--ink);
+  padding:13px 15px; border:1.5px solid var(--line-strong); border-radius:11px;
+  background:var(--bg); transition:border-color .15s ease, box-shadow .15s ease;
+}
+.inp input:focus, .inp textarea:focus{ outline:none; border-color:var(--accent); box-shadow:0 0 0 3px var(--accent-line); background:#fff; }
+.inp textarea{ resize:vertical; min-height:110px; }
+.inp input.invalid, .inp textarea.invalid{ border-color:var(--err); background:var(--err-wash); }
+.err-msg{ color:var(--err); font-size:.85rem; font-weight:500; margin-top:6px; min-height:1em; display:none; }
+.err-msg.show{ display:block; }
+
+.field.field-err > .q{ color:var(--err); }
+.field .group-err{ color:var(--err); font-size:.85rem; font-weight:500; margin-top:8px; display:none; }
+.field .group-err.show{ display:block; }
+
+/* RODO */
+.rodo{ display:flex; gap:12px; align-items:flex-start; padding:16px; border:1.5px solid var(--line-strong); border-radius:12px; background:var(--bg); cursor:pointer; }
+.rodo.selected{ border-color:var(--accent); background:var(--accent-wash); }
+.rodo input{ position:absolute; opacity:0; }
+.rodo .mark{ flex:none; margin-top:2px; width:22px;height:22px;border:2px solid var(--line-strong);border-radius:6px;display:grid;place-items:center;background:#fff;transition:all .15s ease; }
+.rodo.selected .mark{ border-color:var(--accent); background:var(--accent); }
+.rodo .mark svg{ width:12px;height:12px;opacity:0;transform:scale(.5);transition:all .15s ease; }
+.rodo.selected .mark svg{ opacity:1; transform:scale(1); }
+.rodo .txt{ font-size:.9rem; color:var(--ink-soft); line-height:1.5; }
+.rodo:focus-within{ outline:3px solid var(--accent-line); outline-offset:2px; }
+
+/* Nawigacja kreatora */
+.wizard-nav{ display:flex; justify-content:space-between; align-items:center; gap:12px;
+  padding:20px clamp(20px,4vw,34px); border-top:1px solid var(--line); background:var(--bg); }
+.wizard-nav .spacer{ flex:1; }
+.btn-back{ background:none; border:none; color:var(--ink-soft); font-family:inherit; font-size:1rem; font-weight:600; cursor:pointer; padding:12px 8px; }
+.btn-back:hover{ color:var(--ink); }
+.btn-back[hidden]{ display:none; }
+
+/* Ekran potwierdzenia */
+.wizard-done{ display:none; padding:clamp(40px,7vw,70px) clamp(20px,4vw,34px); text-align:center; }
+.wizard-done.show{ display:block; animation:fade .4s ease; }
+.wizard-done .check{ width:68px; height:68px; margin:0 auto 22px; border-radius:50%; background:var(--accent-wash); border:2px solid var(--accent); display:grid; place-items:center; }
+.wizard-done .check svg{ width:32px; height:32px; }
+.wizard-done h3{ font-family:"Fraunces",serif; font-weight:650;
+  font-variation-settings:"SOFT" var(--fr-soft),"WONK" var(--fr-wonk),"opsz" 48;
+  font-size:clamp(1.6rem,1.2rem+2vw,2.2rem); margin:0 0 10px; letter-spacing:-0.02em; }
+.wizard-done p{ color:var(--ink-soft); max-width:44ch; margin:0 auto; }
+
+/* ============================================================
+   KONTAKT / STOPKA
+   ============================================================ */
+#kontakt .contact-grid{ display:grid; gap:16px; }
+@media (min-width:600px){ #kontakt .contact-grid{ grid-template-columns:1fr 1fr; } }
+.contact-card{ background:var(--surface); border:1px solid var(--line); border-radius:var(--radius); padding:26px; }
+.contact-card .lbl{ font-size:.8rem; text-transform:uppercase; letter-spacing:.1em; color:var(--ink-faint); font-weight:600; margin-bottom:8px; }
+.contact-card a{ font-family:"Fraunces",serif; font-weight:600;
+  font-variation-settings:"SOFT" var(--fr-soft),"WONK" var(--fr-wonk),"opsz" 32;
+  font-size:1.5rem; text-decoration:none; letter-spacing:-0.02em; color:var(--ink); }
+.contact-card a:hover{ color:var(--accent); }
+
+footer{ border-top:1px solid var(--line); padding-block:32px; color:var(--ink-faint); font-size:.9rem; }
+footer .foot-inner{ display:flex; flex-wrap:wrap; gap:12px 24px; justify-content:space-between; align-items:center; }
+
+/* Skip link */
+.skip{ position:absolute; left:-999px; top:8px; background:var(--accent); color:#fff; padding:10px 16px; border-radius:8px; z-index:100; }
+.skip:focus{ left:8px; }
+</style>
+</head>
+<body>
+
+<a href="#portfolio" class="skip">Przejdź do portfolio</a>
+
+<!-- ================= NAV ================= -->
+<header class="nav" id="nav">
+  <div class="container nav-inner">
+    <a href="#top" class="brand">Jakub<span class="dot"> &amp; </span>Michał</a>
+    <nav class="nav-links" aria-label="Główna">
+      <a href="#portfolio">Realizacje</a>
+      <a href="#kto">Kto to robi</a>
+      <a href="#uslugi">Co robimy</a>
+      <a href="#proces">Jak pracujemy</a>
+      <a href="#cennik">Cennik</a>
+    </nav>
+    <a href="#brief" class="btn btn-primary nav-cta">Wypełnij brief</a>
+  </div>
+</header>
+
+<!-- ================= HERO ================= -->
+<a id="top"></a>
+<section class="hero">
+  <div class="container">
+    <span class="kicker reveal"><span class="pulse"></span> Warszawa · przyjmujemy nowe projekty</span>
+    <h1 class="reveal">Robimy strony i aplikacje webowe, które <em>działają</em>.</h1>
+    <p class="lead reveal">Jest nas dwóch — Jakub i Michał. Rozmawiasz z nami, nie z działem obsługi. Dowozimy szybko i nie znikamy po tygodniu.</p>
+    <p class="proof reveal">Na naszym koncie konkurs dla <strong>Wolters Kluwer</strong> i platforma zapisów dla fundacji z <strong>700 dzieci</strong> na zajęciach. Nie szablony — rzeczy, których ktoś realnie używa.</p>
+    <div class="hero-actions reveal">
+      <a href="#portfolio" class="btn btn-primary">Zobacz realizacje <span class="arrow">→</span></a>
+      <a href="#brief" class="btn btn-ghost">Wyceń projekt</a>
+    </div>
+  </div>
+</section>
+
+<!-- ================= PORTFOLIO ================= -->
+<section id="portfolio">
+  <div class="container">
+    <div class="section-head reveal">
+      <p class="eyebrow">Realizacje</p>
+      <h2>Co już zbudowałem</h2>
+      <p>Trzy projekty, które pokazują zakres: landing dla korporacji, pełny system zapisów, własny produkt.</p>
+    </div>
+
+    <!-- KARTA WYRÓŻNIONA: Wolters Kluwer -->
+    <div class="work-grid" style="margin-bottom:22px;">
+      <article class="work-card feature reveal">
+        <div class="feature-inner">
+          <div class="work-body">
+            <div class="work-meta">
+              <span class="badge accent">Klient korporacyjny</span>
+              <!-- Logo klienta: podmień plik img/logo-wk.svg. Gdy pliku brak, pokaże się fallback obok. -->
+              <img class="client-logo" src="img/logo-wk.svg" width="120" height="28"
+                   alt="Logo Wolters Kluwer Polska" onerror="logoFail(this)">
+              <span class="client-logo-ph" hidden role="img" aria-label="Miejsce na logo klienta">
+                <span class="box"></span> LOGO KLIENTA — do wstawienia
+              </span>
+            </div>
+            <h3>Konkurs „Liderzy Zmian w Ochronie Zdrowia”</h3>
+            <p class="work-client">Wolters Kluwer Polska · VII edycja</p>
+            <p class="desc">Landing konkursu. Animowana siatka punktów na canvasie z fizyką odpychania od kursora, sekcje kapituły i jury, strip logotypów partnerów oraz podstrona z regulaminem. Prowadzi zgłoszenia od wejścia do wysłania.</p>
+            <div class="tags">
+              <span class="tag">HTML / CSS / JS</span>
+              <span class="tag">Canvas 2D</span>
+              <span class="tag">Animacja fizyczna</span>
+              <span class="tag">Landing</span>
+            </div>
+            <div class="work-meta" style="justify-content:space-between;">
+              <a class="work-link" href="https://konkurs-liderzyzmian.pl/" target="_blank" rel="noopener noreferrer">konkurs-liderzyzmian.pl <span class="arrow">↗</span></a>
+              <span class="prowadzil"><span class="who-dot"></span>Prowadził: <b>Jakub</b></span>
+            </div>
+          </div>
+          <!-- Screenshoty: podmień img/liderzy-desktop.webp + img/liderzy-mobile.webp.
+               Desktop pierwszej karty NIE ma loading="lazy" (jest nad zgięciem). -->
+          <div class="shot">
+            <img class="shot-desk" src="img/liderzy-desktop.webp" width="1200" height="750"
+                 alt="Zrzut ekranu strony konkursu Liderzy Zmian – widok na desktopie" onerror="shotFail(this)">
+            <img class="shot-mob" src="img/liderzy-mobile.webp" width="360" height="760" loading="lazy"
+                 alt="Zrzut ekranu strony konkursu Liderzy Zmian – widok na telefonie" onerror="this.remove()">
+            <div class="shot-ph" hidden><span>Screenshot — desktop + mobile</span></div>
+          </div>
+        </div>
+      </article>
+    </div>
+
+    <!-- DWIE MNIEJSZE KARTY -->
+    <div class="work-grid two">
+      <article class="work-card reveal">
+        <!-- Screenshoty: podmień img/alpiclub-desktop.webp + img/alpiclub-mobile.webp -->
+        <div class="shot">
+          <img class="shot-desk" src="img/alpiclub-desktop.webp" width="1200" height="750" loading="lazy"
+               alt="Zrzut ekranu platformy AlpiClub – widok na desktopie" onerror="shotFail(this)">
+          <img class="shot-mob" src="img/alpiclub-mobile.webp" width="360" height="760" loading="lazy"
+               alt="Zrzut ekranu platformy AlpiClub – widok na telefonie" onerror="this.remove()">
+          <div class="shot-ph" hidden><span>Screenshot — desktop + mobile</span></div>
+        </div>
+        <div class="work-body">
+          <div class="work-meta"><span class="badge">System zapisów</span></div>
+          <h3>AlpiClub — Fundacja Sportowa</h3>
+          <p class="work-client">700+ dzieci na zajęciach</p>
+          <p class="desc">Pełna platforma zapisów, nie wizytówka. Konta użytkowników, rejestracja z weryfikacją mailową, dodawanie uczestników, kalendarz zajęć, zapisy z płatnością online, panel klienta z obecnościami i zdjęciami, galeria, wersja PL/EN, newsletter z kodami rabatowymi i asystent odpowiadający na pytania.</p>
+          <div class="tags">
+            <span class="tag">Konta i płatności</span>
+            <span class="tag">Panel klienta</span>
+            <span class="tag">PL / EN</span>
+            <span class="tag">Newsletter</span>
+          </div>
+          <div class="work-meta" style="justify-content:space-between;">
+            <a class="work-link" href="https://alpiclub.com.pl/" target="_blank" rel="noopener noreferrer">alpiclub.com.pl <span class="arrow">↗</span></a>
+            <span class="prowadzil"><span class="who-dot"></span>Prowadził: <b>Michał</b></span>
+          </div>
+        </div>
+      </article>
+
+      <article class="work-card reveal">
+        <!-- Screenshoty: podmień img/qhlab-desktop.webp + img/qhlab-mobile.webp -->
+        <div class="shot">
+          <img class="shot-desk" src="img/qhlab-desktop.webp" width="1200" height="750" loading="lazy"
+               alt="Zrzut ekranu platformy qhlab.pl – widok na desktopie" onerror="shotFail(this)">
+          <img class="shot-mob" src="img/qhlab-mobile.webp" width="360" height="760" loading="lazy"
+               alt="Zrzut ekranu platformy qhlab.pl – widok na telefonie" onerror="this.remove()">
+          <div class="shot-ph" hidden><span>Screenshot — desktop + mobile</span></div>
+        </div>
+        <div class="work-body">
+          <div class="work-meta"><span class="badge own">Projekt własny</span></div>
+          <h3>qhlab.pl — Quality Hub</h3>
+          <p class="work-client">Budujemy też dla siebie</p>
+          <p class="desc">Własny produkt: platforma narzędzi dla ochrony zdrowia. Interaktywne narzędzia samooceny do standardów akredytacyjnych CMJ (szpitale i POZ, ponad 100 standardów w kilku kategoriach), system punktacji i blog branżowy.</p>
+          <div class="tags">
+            <span class="tag">React</span>
+            <span class="tag">TypeScript</span>
+            <span class="tag">Vite</span>
+            <span class="tag">Tailwind</span>
+            <span class="tag">Netlify</span>
+          </div>
+          <div class="work-meta" style="justify-content:space-between;">
+            <a class="work-link" href="https://qhlab.pl" target="_blank" rel="noopener noreferrer">qhlab.pl <span class="arrow">↗</span></a>
+            <span class="prowadzil"><span class="who-dot"></span>Prowadził: <b>Jakub</b></span>
+          </div>
+        </div>
+      </article>
+    </div>
+  </div>
+</section>
+
+<!-- ================= KTO TO ROBI ================= -->
+<section id="kto">
+  <div class="container">
+    <div class="section-head reveal">
+      <p class="eyebrow">Kto to robi</p>
+      <h2>Dwie osoby, żadnego działu obsługi</h2>
+      <p>Robisz projekt z konkretnymi ludźmi. Wiesz, kto odbiera telefon i kto pisze kod.</p>
+    </div>
+    <div class="who-grid">
+      <div class="who-card reveal">
+        <!-- Zdjęcie: podmień plik img/jakub.webp. Gdy brak, pokaże się placeholder. -->
+        <div class="who-photo">
+          <img src="img/jakub.webp" width="168" height="168" loading="lazy"
+               alt="Zdjęcie: Jakub" onerror="photoFail(this)">
+          <div class="ph" hidden><span>Zdjęcie</span></div>
+        </div>
+        <div class="who-info">
+          <h3>Jakub</h3>
+          <p class="role">[ROLA_JAKUB]</p>
+          <p>Prowadzi landingi i projekty produktowe — od konkursu dla Wolters Kluwer po własny qhlab.pl.</p>
+        </div>
+      </div>
+      <div class="who-card reveal">
+        <!-- Zdjęcie: podmień plik img/michal.webp. Gdy brak, pokaże się placeholder. -->
+        <div class="who-photo">
+          <img src="img/michal.webp" width="168" height="168" loading="lazy"
+               alt="Zdjęcie: Michał" onerror="photoFail(this)">
+          <div class="ph" hidden><span>Zdjęcie</span></div>
+        </div>
+        <div class="who-info">
+          <h3>Michał</h3>
+          <p class="role">[ROLA_MICHAL]</p>
+          <p>Prowadzi systemy z logiką — konta, zapisy i płatności, jak platforma AlpiClub dla 700 dzieci.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= USŁUGI ================= -->
+<section id="uslugi">
+  <div class="container">
+    <div class="section-head reveal">
+      <p class="eyebrow">Co robimy</p>
+      <h2>Cztery rzeczy, które robimy dobrze</h2>
+    </div>
+    <div class="tiles">
+      <div class="tile reveal"><span class="num">01</span><h3>Strony wizytówki</h3><p>Prosto, szybko, czytelnie — strona, która mówi kim jesteś i po którą klient dzwoni.</p></div>
+      <div class="tile reveal"><span class="num">02</span><h3>Landing pages</h3><p>Jedna strona pod kampanię lub wydarzenie, zbudowana tak, żeby zbierać zgłoszenia.</p></div>
+      <div class="tile reveal"><span class="num">03</span><h3>Systemy zapisów i płatności</h3><p>Konta, rejestracje, kalendarz, płatności online — działający proces, nie tylko formularz.</p></div>
+      <div class="tile reveal"><span class="num">04</span><h3>Aplikacje webowe</h3><p>Narzędzia z logiką, kontami i panelem — od pomysłu do wdrożenia na produkcji.</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= JAK PRACUJĘ ================= -->
+<section id="proces">
+  <div class="container">
+    <div class="section-head reveal">
+      <p class="eyebrow">Jak pracuję</p>
+      <h2>Cztery kroki, zero niespodzianek</h2>
+    </div>
+    <div class="steps">
+      <div class="step reveal"><span class="n">1</span><h3>Brief</h3><p>Wypełniasz brief na tej stronie — mamy wtedy wszystko, czego potrzebujemy do wyceny.</p></div>
+      <div class="step reveal"><span class="n">2</span><h3>Wycena w 48h</h3><p>Konkretna cena i termin w ciągu dwóch dni. Bez „to zależy”.</p></div>
+      <div class="step reveal"><span class="n">3</span><h3>Budowa z podglądem</h3><p>Widzisz postęp na żywo pod linkiem. Poprawki nanosimy w trakcie, nie na końcu.</p></div>
+      <div class="step reveal"><span class="n">4</span><h3>Wdrożenie i przekazanie</h3><p>Uruchamiamy stronę i przekazujemy Ci ją w całości.</p></div>
+    </div>
+    <p class="proces-note reveal"><strong>Kod i domena są Twoje.</strong> Dostajesz dostęp do jednego i drugiego zapisany na siebie — nie jesteś uwiązany do nas ani do niczyjej platformy.</p>
+  </div>
+</section>
+
+<!-- ================= CENNIK ================= -->
+<section id="cennik">
+  <div class="container">
+    <div class="section-head reveal">
+      <p class="eyebrow">Cennik orientacyjny</p>
+      <h2>Ile to kosztuje</h2>
+    </div>
+    <div class="price-grid">
+      <div class="price-card reveal">
+        <span class="label">Strona wizytówka</span>
+        <span class="amount"><span class="od">od</span>2500 <span class="cur">zł</span></span>
+        <p>Kilka sekcji, formularz kontaktowy, responsywność. Gotowa i wdrożona.</p>
+      </div>
+      <div class="price-card reveal">
+        <span class="label">Landing page</span>
+        <span class="amount"><span class="od">od</span>4000 <span class="cur">zł</span></span>
+        <p>Pod kampanię lub wydarzenie, zbudowany pod zbieranie zgłoszeń.</p>
+      </div>
+      <div class="price-card reveal">
+        <span class="label">System z zapisami</span>
+        <span class="amount"><span class="od">od</span>9000 <span class="cur">zł</span></span>
+        <p>Konta, rejestracje, płatności, panel klienta. Wycena po briefie.</p>
+      </div>
+    </div>
+    <p class="price-note reveal">Dokładną cenę podajemy po briefie, <em>w ciągu 48 godzin</em>.</p>
+  </div>
+</section>
+
+<!-- ================= BRIEF / KREATOR ================= -->
+<section id="brief">
+  <div class="container">
+    <div class="section-head reveal">
+      <p class="eyebrow">Brief</p>
+      <h2>Wyceń swój projekt</h2>
+      <p>Cztery krótkie kroki. Im więcej nam powiesz, tym konkretniejsza pierwsza rozmowa i szybsza wycena.</p>
+    </div>
+
+    <div class="wizard reveal" id="wizard">
+      <div class="wizard-top">
+        <div class="progress-meta">
+          <span class="stepname" id="stepName">Czego potrzebujesz</span>
+          <span class="count" id="stepCount">Krok 1 z 4</span>
+        </div>
+        <div class="progress-track"><div class="progress-fill" id="progressFill"></div></div>
+      </div>
+
+      <div class="wizard-body">
+        <!-- KROK 1 -->
+        <div class="step-panel active" data-step="1">
+          <div class="field" data-group="potrzeba" data-required="true">
+            <p class="q">Czego potrzebujesz?</p>
+            <div class="tile-options">
+              <label class="opt"><input type="radio" name="potrzeba" value="Strona wizytówka"><span class="mark radio"><svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="6" fill="#fff"/></svg></span><span class="txt">Strona wizytówka</span></label>
+              <label class="opt"><input type="radio" name="potrzeba" value="Landing page pod kampanię/wydarzenie"><span class="mark radio"><svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="6" fill="#fff"/></svg></span><span class="txt">Landing page pod kampanię lub wydarzenie</span></label>
+              <label class="opt"><input type="radio" name="potrzeba" value="Sklep / system zapisów"><span class="mark radio"><svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="6" fill="#fff"/></svg></span><span class="txt">Sklep lub system zapisów</span></label>
+              <label class="opt"><input type="radio" name="potrzeba" value="Aplikacja webowa z kontami"><span class="mark radio"><svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="6" fill="#fff"/></svg></span><span class="txt">Aplikacja webowa z kontami użytkowników</span></label>
+              <label class="opt"><input type="radio" name="potrzeba" value="Nie wiem, doradź mi"><span class="mark radio"><svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="6" fill="#fff"/></svg></span><span class="txt">Nie wiem, doradź mi</span></label>
+            </div>
+            <p class="group-err">Wybierz jedną opcję.</p>
+          </div>
+
+          <div class="field" data-group="masz_strone" data-required="true">
+            <p class="q">Masz już stronę?</p>
+            <div class="tile-options cols-2">
+              <label class="opt"><input type="radio" name="masz_strone" value="Nie mam"><span class="mark radio"><svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="6" fill="#fff"/></svg></span><span class="txt">Nie mam</span></label>
+              <label class="opt"><input type="radio" name="masz_strone" value="Mam i chcę nową"><span class="mark radio"><svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="6" fill="#fff"/></svg></span><span class="txt">Mam i chcę nową</span></label>
+              <label class="opt"><input type="radio" name="masz_strone" value="Mam i chcę poprawić"><span class="mark radio"><svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="6" fill="#fff"/></svg></span><span class="txt">Mam i chcę poprawić</span></label>
+            </div>
+            <p class="group-err">Wybierz jedną opcję.</p>
+          </div>
+
+          <div class="field" id="urlField" data-conditional="true" hidden>
+            <label class="inp">
+              <span class="q">Adres obecnej strony</span>
+              <input type="text" name="obecna_strona" inputmode="url" placeholder="np. mojafirma.pl">
+            </label>
+          </div>
+        </div>
+
+        <!-- KROK 2 -->
+        <div class="step-panel" data-step="2">
+          <div class="field" data-group="funkcje">
+            <p class="q">Czego potrzebujesz na stronie?</p>
+            <p class="hint">Zaznacz wszystko, co pasuje.</p>
+            <div class="tile-options cols-2">
+              <label class="opt"><input type="checkbox" name="funkcje" value="Formularz kontaktowy"><span class="mark check"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></span><span class="txt">Formularz kontaktowy</span></label>
+              <label class="opt"><input type="checkbox" name="funkcje" value="Zapisy / rezerwacje"><span class="mark check"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></span><span class="txt">Zapisy lub rezerwacje</span></label>
+              <label class="opt"><input type="checkbox" name="funkcje" value="Płatności online"><span class="mark check"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></span><span class="txt">Płatności online</span></label>
+              <label class="opt"><input type="checkbox" name="funkcje" value="Konta użytkowników"><span class="mark check"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></span><span class="txt">Konta użytkowników</span></label>
+              <label class="opt"><input type="checkbox" name="funkcje" value="Blog / aktualności"><span class="mark check"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></span><span class="txt">Blog lub aktualności</span></label>
+              <label class="opt"><input type="checkbox" name="funkcje" value="Galeria"><span class="mark check"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></span><span class="txt">Galeria</span></label>
+              <label class="opt"><input type="checkbox" name="funkcje" value="Wersja obcojęzyczna"><span class="mark check"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></span><span class="txt">Wersja obcojęzyczna</span></label>
+              <label class="opt"><input type="checkbox" name="funkcje" value="Integracja z Google Maps"><span class="mark check"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></span><span class="txt">Integracja z Google Maps</span></label>
+              <label class="opt"><input type="checkbox" name="funkcje" value="Newsletter"><span class="mark check"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></span><span class="txt">Newsletter</span></label>
+            </div>
+          </div>
+
+          <div class="field" data-group="materialy">
+            <p class="q">Masz gotowe materiały?</p>
+            <div class="tile-options cols-2">
+              <label class="opt"><input type="checkbox" name="materialy" value="Logo"><span class="mark check"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></span><span class="txt">Logo</span></label>
+              <label class="opt"><input type="checkbox" name="materialy" value="Teksty"><span class="mark check"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></span><span class="txt">Teksty</span></label>
+              <label class="opt"><input type="checkbox" name="materialy" value="Zdjęcia"><span class="mark check"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></span><span class="txt">Zdjęcia</span></label>
+              <label class="opt"><input type="checkbox" name="materialy" value="Nic, potrzebuję pomocy"><span class="mark check"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></span><span class="txt">Nic, potrzebuję pomocy</span></label>
+            </div>
+          </div>
+        </div>
+
+        <!-- KROK 3 -->
+        <div class="step-panel" data-step="3">
+          <div class="field" data-group="termin" data-required="true">
+            <p class="q">Na kiedy?</p>
+            <div class="tile-options cols-2">
+              <label class="opt"><input type="radio" name="termin" value="Na już (do 2 tygodni)"><span class="mark radio"><svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="6" fill="#fff"/></svg></span><span class="txt">Na już (do 2 tygodni)</span></label>
+              <label class="opt"><input type="radio" name="termin" value="Miesiąc"><span class="mark radio"><svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="6" fill="#fff"/></svg></span><span class="txt">Miesiąc</span></label>
+              <label class="opt"><input type="radio" name="termin" value="2-3 miesiące"><span class="mark radio"><svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="6" fill="#fff"/></svg></span><span class="txt">2–3 miesiące</span></label>
+              <label class="opt"><input type="radio" name="termin" value="Bez presji"><span class="mark radio"><svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="6" fill="#fff"/></svg></span><span class="txt">Bez presji</span></label>
+            </div>
+            <p class="group-err">Wybierz jedną opcję.</p>
+          </div>
+
+          <div class="field" data-group="budzet" data-required="true">
+            <p class="q">Budżet</p>
+            <div class="tile-options cols-2">
+              <label class="opt"><input type="radio" name="budzet" value="do 3 tys."><span class="mark radio"><svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="6" fill="#fff"/></svg></span><span class="txt">do 3 tys. zł</span></label>
+              <label class="opt"><input type="radio" name="budzet" value="3-8 tys."><span class="mark radio"><svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="6" fill="#fff"/></svg></span><span class="txt">3–8 tys. zł</span></label>
+              <label class="opt"><input type="radio" name="budzet" value="8-15 tys."><span class="mark radio"><svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="6" fill="#fff"/></svg></span><span class="txt">8–15 tys. zł</span></label>
+              <label class="opt"><input type="radio" name="budzet" value="powyżej 15 tys."><span class="mark radio"><svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="6" fill="#fff"/></svg></span><span class="txt">powyżej 15 tys. zł</span></label>
+              <label class="opt"><input type="radio" name="budzet" value="Nie wiem, doradź"><span class="mark radio"><svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="6" fill="#fff"/></svg></span><span class="txt">Nie wiem, doradź</span></label>
+            </div>
+            <p class="group-err">Wybierz jedną opcję.</p>
+          </div>
+        </div>
+
+        <!-- KROK 4 -->
+        <div class="step-panel" data-step="4">
+          <div class="field">
+            <label class="inp">
+              <span class="q">Imię i nazwisko <span class="req">*</span></span>
+              <input type="text" name="imie" autocomplete="name" placeholder="Jan Kowalski">
+            </label>
+            <p class="err-msg" data-for="imie"></p>
+          </div>
+          <div class="field">
+            <label class="inp">
+              <span class="q">Firma / organizacja</span>
+              <input type="text" name="firma" autocomplete="organization" placeholder="Nazwa firmy lub fundacji">
+            </label>
+          </div>
+          <div class="field">
+            <label class="inp">
+              <span class="q">E-mail <span class="req">*</span></span>
+              <input type="email" name="email" autocomplete="email" inputmode="email" placeholder="jan@firma.pl">
+            </label>
+            <p class="err-msg" data-for="email"></p>
+          </div>
+          <div class="field">
+            <label class="inp">
+              <span class="q">Telefon <span class="req">*</span></span>
+              <input type="tel" name="telefon" autocomplete="tel" inputmode="tel" placeholder="np. 512 345 678 lub +48 512 345 678">
+            </label>
+            <p class="err-msg" data-for="telefon"></p>
+          </div>
+          <div class="field">
+            <label class="inp">
+              <span class="q">Opisz krótko projekt</span>
+              <textarea name="opis" placeholder="Co chcesz osiągnąć? Kto jest odbiorcą? Cokolwiek, co uważasz za ważne."></textarea>
+            </label>
+          </div>
+          <div class="field">
+            <label class="rodo" id="rodoBox">
+              <input type="checkbox" name="rodo">
+              <span class="mark"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></span>
+              <span class="txt">Zgadzam się na przetwarzanie moich danych w celu przygotowania wyceny i kontaktu w tej sprawie. Administratorem danych jest [ADMINISTRATOR_DANYCH]. Dane usuwamy na żądanie i nie przekazujemy nikomu.</span>
+            </label>
+            <p class="err-msg" data-for="rodo"></p>
+          </div>
+        </div>
+      </div>
+
+      <div class="wizard-nav">
+        <button type="button" class="btn-back" id="btnBack" hidden>← Wstecz</button>
+        <span class="spacer"></span>
+        <button type="button" class="btn btn-primary" id="btnNext">Dalej <span class="arrow">→</span></button>
+        <button type="button" class="btn btn-primary" id="btnSubmit" hidden>Wyślij brief <span class="arrow">→</span></button>
+      </div>
+
+      <!-- POTWIERDZENIE -->
+      <div class="wizard-done" id="wizardDone">
+        <div class="check"><svg viewBox="0 0 24 24" fill="none" stroke="#2b2bff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div>
+        <h3>Dzięki — odezwiemy się w ciągu 24 godzin.</h3>
+        <p>Mamy Twój brief. Przygotujemy konkretną wycenę i termin, i wrócimy do Ciebie mailem lub telefonicznie.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= KONTAKT ================= -->
+<section id="kontakt">
+  <div class="container">
+    <div class="section-head reveal">
+      <p class="eyebrow">Kontakt</p>
+      <h2>Wolisz od razu napisać?</h2>
+      <p>Brief jest wygodniejszy, ale telefon też działa.</p>
+    </div>
+    <div class="contact-grid">
+      <div class="contact-card reveal">
+        <p class="lbl">Telefon</p>
+        <!-- Podmień MOJ_TELEFON na numer, np. +48 500 600 700 -->
+        <a href="tel:MOJ_TELEFON">MOJ_TELEFON</a>
+      </div>
+      <div class="contact-card reveal">
+        <p class="lbl">E-mail</p>
+        <!-- Podmień MOJ_MAIL na adres, np. jakub@domena.pl -->
+        <a href="mailto:MOJ_MAIL">MOJ_MAIL</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="container foot-inner">
+    <span>© <span id="year"></span> [ADMINISTRATOR_DANYCH] · Jakub &amp; Michał · Strony i aplikacje webowe · Warszawa</span>
+    <a href="#brief" style="color:var(--accent-ink); font-weight:600; text-decoration:none;">Wyceń projekt →</a>
+  </div>
+</footer>
+
+<script>
+"use strict";
+
+/* Fallbacki obrazków (shotFail/logoFail/photoFail) są zdefiniowane w <head>,
+   żeby istniały ZANIM parser dojdzie do obrazków z onerror. Tu ich nie duplikujemy. */
+
+(function(){
+
+  /* ---------- Rok w stopce ---------- */
+  document.getElementById("year").textContent = new Date().getFullYear();
+
+  /* ---------- Nav shadow przy scrollu ---------- */
+  var nav = document.getElementById("nav");
+  var onScroll = function(){ nav.classList.toggle("scrolled", window.scrollY > 8); };
+  onScroll();
+  window.addEventListener("scroll", onScroll, { passive:true });
+
+  /* ---------- Reveal (IntersectionObserver + prefers-reduced-motion) ---------- */
+  var reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  var reveals = document.querySelectorAll(".reveal");
+  function revealAll(){ reveals.forEach(function(el){ el.classList.add("in"); }); }
+  if (reduce || !("IntersectionObserver" in window)) {
+    revealAll();
+  } else {
+    var ioFired = false;
+    var io = new IntersectionObserver(function(entries){
+      ioFired = true; // potwierdzenie, że obserwator naprawdę dostarcza callbacki
+      entries.forEach(function(e){
+        if (e.isIntersecting){ e.target.classList.add("in"); io.unobserve(e.target); }
+      });
+    }, { threshold:0.12, rootMargin:"0px 0px -8% 0px" });
+    reveals.forEach(function(el){ io.observe(el); });
+
+    // FAILSAFE: są konteksty (in-app WhatsApp/Messenger, karty w tle, brak malowania),
+    // gdzie IO istnieje, ale callback nigdy nie przychodzi. Jeśli po załadowaniu nie padł
+    // ani jeden callback — odsłaniamy całą treść. W normalnej przeglądarce ioFired=true,
+    // więc animacja przy scrollu działa jak dotąd i failsafe nic nie zmienia.
+    var failsafe = function(){ if (!ioFired){ document.documentElement.classList.add("reveal-now"); revealAll(); } };
+    window.addEventListener("load", function(){ setTimeout(failsafe, 1000); });
+    setTimeout(failsafe, 2500); // druga siatka, gdyby zdarzenie load nie przyszło
+  }
+
+  /* ============================================================
+     KREATOR BRIEFU
+     Stan trzymany w pamięci JS (obiekt poniżej) — NIE w localStorage.
+     ============================================================ */
+  var formState = {
+    potrzeba:"", masz_strone:"", obecna_strona:"",
+    funkcje:[], materialy:[],
+    termin:"", budzet:"",
+    imie:"", firma:"", email:"", telefon:"", opis:"", rodo:false
+  };
+
+  var STEP_NAMES = ["Czego potrzebujesz", "Funkcje i materiały", "Termin i budżet", "Dane kontaktowe"];
+  var TOTAL = 4;
+  var current = 1;
+
+  var wizard    = document.getElementById("wizard");
+  var panels    = wizard.querySelectorAll(".step-panel");
+  var fill      = document.getElementById("progressFill");
+  var stepName  = document.getElementById("stepName");
+  var stepCount = document.getElementById("stepCount");
+  var btnBack   = document.getElementById("btnBack");
+  var btnNext   = document.getElementById("btnNext");
+  var btnSubmit = document.getElementById("btnSubmit");
+  var wizardDone= document.getElementById("wizardDone");
+  var wizardBody= wizard.querySelector(".wizard-body");
+  var wizardNav = wizard.querySelector(".wizard-nav");
+  var urlField  = document.getElementById("urlField");
+
+  /* ---------- Wizualny stan kafelków + zapis do formState ---------- */
+  function syncOption(input){
+    var opt = input.closest(".opt") || input.closest(".rodo");
+    if (input.type === "radio"){
+      // odznacz rodzeństwo
+      document.querySelectorAll('input[name="'+input.name+'"]').forEach(function(sib){
+        var s = sib.closest(".opt"); if (s) s.classList.toggle("selected", sib.checked);
+      });
+      formState[input.name] = input.value;
+    } else if (input.type === "checkbox" && (input.name === "funkcje" || input.name === "materialy")){
+      if (opt) opt.classList.toggle("selected", input.checked);
+      var arr = formState[input.name];
+      var i = arr.indexOf(input.value);
+      if (input.checked && i === -1) arr.push(input.value);
+      if (!input.checked && i !== -1) arr.splice(i,1);
+    } else if (input.name === "rodo"){
+      if (opt) opt.classList.toggle("selected", input.checked);
+      formState.rodo = input.checked;
+    }
+  }
+
+  // Delegacja: reagujemy na każdą zmianę kontrolki w kreatorze
+  wizard.addEventListener("change", function(e){
+    var t = e.target;
+    if (t.matches('input[type="radio"], input[type="checkbox"]')) {
+      syncOption(t);
+      // warunkowe pole: adres obecnej strony
+      if (t.name === "masz_strone") toggleUrlField();
+      clearGroupError(t);
+    }
+  });
+
+  // Pola tekstowe -> formState
+  wizard.addEventListener("input", function(e){
+    var t = e.target;
+    if (t.matches("input[type=text], input[type=email], input[type=tel], textarea")){
+      if (t.name in formState) formState[t.name] = t.value.trim();
+      // czyść błąd pojedynczego pola przy pisaniu
+      var msg = wizard.querySelector('.err-msg[data-for="'+t.name+'"]');
+      if (msg){ msg.classList.remove("show"); msg.textContent=""; t.classList.remove("invalid"); }
+    }
+  });
+
+  // Klawiatura: spacja/enter na kafelku (label już to obsługuje, ale wzmacniamy)
+  wizard.querySelectorAll(".opt, .rodo").forEach(function(lbl){
+    lbl.addEventListener("keydown", function(e){
+      if (e.key === " " || e.key === "Enter"){
+        var inp = lbl.querySelector("input");
+        if (inp && inp.type === "radio"){ e.preventDefault(); inp.checked = true; inp.dispatchEvent(new Event("change",{bubbles:true})); }
+      }
+    });
+    var inp = lbl.querySelector("input");
+    if (inp) lbl.setAttribute("tabindex","0");
+  });
+
+  function toggleUrlField(){
+    var show = (formState.masz_strone === "Mam i chcę nową" || formState.masz_strone === "Mam i chcę poprawić");
+    urlField.hidden = !show;
+    if (!show){ // czyścimy, gdy schowane
+      var inp = urlField.querySelector("input");
+      if (inp) inp.value = "";
+      formState.obecna_strona = "";
+    }
+  }
+
+  /* ---------- Błędy grup (radio) ---------- */
+  function clearGroupError(input){
+    var field = input.closest(".field");
+    if (!field) return;
+    field.classList.remove("field-err");
+    var ge = field.querySelector(".group-err");
+    if (ge) ge.classList.remove("show");
+  }
+
+  /* ---------- Walidacja per krok ---------- */
+  function validateStep(step){
+    var panel = wizard.querySelector('.step-panel[data-step="'+step+'"]');
+    var ok = true;
+    var firstBad = null;
+
+    // Grupy wymagane (radio)
+    panel.querySelectorAll('.field[data-required="true"]').forEach(function(field){
+      var name = field.getAttribute("data-group");
+      var chosen = panel.querySelector('input[name="'+name+'"]:checked');
+      var ge = field.querySelector(".group-err");
+      if (!chosen){
+        ok = false; field.classList.add("field-err");
+        if (ge) ge.classList.add("show");
+        if (!firstBad) firstBad = field;
+      } else {
+        field.classList.remove("field-err");
+        if (ge) ge.classList.remove("show");
+      }
+    });
+
+    // Krok 4 — pola tekstowe wymagane
+    if (step === 4){
+      firstBad = validateField("imie", function(v){ return v.length >= 2; }, "Podaj imię i nazwisko.") || firstBad;
+      firstBad = validateField("email", isEmail, "Podaj poprawny adres e-mail.") || firstBad;
+      firstBad = validateField("telefon", isPhonePL, "Podaj poprawny polski numer telefonu.") || firstBad;
+      // RODO
+      var rodoMsg = wizard.querySelector('.err-msg[data-for="rodo"]');
+      var rodoBox = document.getElementById("rodoBox");
+      if (!formState.rodo){
+        ok = false;
+        if (rodoMsg){ rodoMsg.textContent = "Bez zgody nie odezwiemy się z wyceną."; rodoMsg.classList.add("show"); }
+        if (!firstBad) firstBad = rodoBox;
+      } else if (rodoMsg){ rodoMsg.classList.remove("show"); rodoMsg.textContent=""; }
+
+      // jeśli którekolwiek pole tekstowe niepoprawne -> ok=false
+      if (!isFieldValid("imie", function(v){ return v.length >= 2; })) ok=false;
+      if (!isFieldValid("email", isEmail)) ok=false;
+      if (!isFieldValid("telefon", isPhonePL)) ok=false;
+    }
+
+    if (!ok && firstBad){
+      var focusable = firstBad.querySelector("input, textarea, .opt, .rodo");
+      if (focusable && focusable.focus) { try{ focusable.focus(); }catch(_){} }
+      firstBad.scrollIntoView({ behavior: reduce ? "auto" : "smooth", block:"center" });
+    }
+    return ok;
+  }
+
+  function isFieldValid(name, test){
+    var inp = wizard.querySelector('[name="'+name+'"]');
+    return inp ? test((inp.value||"").trim()) : false;
+  }
+  // zwraca element pola gdy błędny (do firstBad), inaczej null
+  function validateField(name, test, message){
+    var inp = wizard.querySelector('[name="'+name+'"]');
+    var msg = wizard.querySelector('.err-msg[data-for="'+name+'"]');
+    var val = (inp.value||"").trim();
+    if (!test(val)){
+      inp.classList.add("invalid");
+      if (msg){ msg.textContent = message; msg.classList.add("show"); }
+      return inp.closest(".field");
+    } else {
+      inp.classList.remove("invalid");
+      if (msg){ msg.classList.remove("show"); msg.textContent=""; }
+      return null;
+    }
+  }
+
+  function isEmail(v){ return /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(v); }
+  function isPhonePL(v){
+    // Akceptuje: 9 cyfr, opcjonalnie +48 / 0048 / 48, spacje/myślniki/nawiasy
+    var digits = v.replace(/[\s\-\(\)]/g, "");
+    return /^(\+48|0048|48)?\d{9}$/.test(digits);
+  }
+
+  /* ---------- Render kroku ---------- */
+  function render(){
+    panels.forEach(function(p){ p.classList.toggle("active", +p.getAttribute("data-step") === current); });
+    fill.style.width = (current / TOTAL * 100) + "%";
+    stepName.textContent = STEP_NAMES[current-1];
+    stepCount.textContent = "Krok " + current + " z " + TOTAL;
+    btnBack.hidden = current === 1;
+    btnNext.hidden = current === TOTAL;
+    btnSubmit.hidden = current !== TOTAL;
+    // przewiń górę kreatora w kadr
+    wizard.scrollIntoView({ behavior: reduce ? "auto" : "smooth", block:"start" });
+  }
+
+  btnNext.addEventListener("click", function(){
+    if (validateStep(current)){ current = Math.min(TOTAL, current+1); render(); }
+  });
+  btnBack.addEventListener("click", function(){
+    current = Math.max(1, current-1); render();
+  });
+
+  btnSubmit.addEventListener("click", function(){
+    if (!validateStep(4)) return;
+    // ostateczny snapshot z DOM (na wszelki wypadek)
+    formState.obecna_strona = urlField.hidden ? "" : (urlField.querySelector("input").value||"").trim();
+    submitBrief(formState);
+  });
+
+  /* ============================================================
+     WYSYŁKA — jedno miejsce do podmiany na prawdziwy backend.
+     Na razie: log do konsoli w czytelnym formacie + ekran "dzięki".
+     Podmień treść funkcji na fetch('/api/brief', {...}) gdy backend będzie gotowy.
+     ============================================================ */
+  function submitBrief(data){
+    // ===== POCZĄTEK: MIEJSCE DO PODMIANY (integracja backendu) =====
+    console.groupCollapsed("%c📩 Nowy brief","color:#2b2bff;font-weight:bold;font-size:13px;");
+    console.log("Imię i nazwisko : ", data.imie);
+    console.log("Firma           : ", data.firma || "—");
+    console.log("E-mail          : ", data.email);
+    console.log("Telefon         : ", data.telefon);
+    console.log("Czego potrzebuje: ", data.potrzeba);
+    console.log("Ma stronę?      : ", data.masz_strone);
+    console.log("Obecna strona   : ", data.obecna_strona || "—");
+    console.log("Funkcje         : ", data.funkcje.length ? data.funkcje.join(", ") : "—");
+    console.log("Materiały       : ", data.materialy.length ? data.materialy.join(", ") : "—");
+    console.log("Termin          : ", data.termin);
+    console.log("Budżet          : ", data.budzet);
+    console.log("Opis            : ", data.opis || "—");
+    console.log("Zgoda RODO      : ", data.rodo ? "TAK" : "NIE");
+    console.log("%cPełny obiekt:", "color:#8a8478;");
+    console.log(JSON.parse(JSON.stringify(data)));
+    console.groupEnd();
+
+    /* Przykład docelowej wysyłki (odkomentuj i dostosuj endpoint):
+    fetch("/api/brief", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(data)
+    }).then(function(r){ if(!r.ok) throw new Error("HTTP "+r.status); })
+      .catch(function(err){ console.error("Błąd wysyłki briefu:", err); });
+    */
+    // ===== KONIEC: MIEJSCE DO PODMIANY =====
+
+    showThankYou();
+  }
+
+  function showThankYou(){
+    wizardBody.style.display = "none";
+    wizardNav.style.display = "none";
+    wizard.querySelector(".wizard-top").style.display = "none";
+    wizardDone.classList.add("show");
+    wizardDone.scrollIntoView({ behavior: reduce ? "auto" : "smooth", block:"center" });
+  }
+
+  render();
+})();
+</script>
+</body>
+</html>
