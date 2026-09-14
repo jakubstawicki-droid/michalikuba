@@ -888,7 +888,12 @@ footer .foot-inner{ display:flex; flex-wrap:wrap; gap:12px 24px; justify-content
       <p>Cztery krótkie kroki. Im więcej nam powiesz, tym konkretniejsza pierwsza rozmowa i szybsza wycena.</p>
     </div>
 
-    <div class="wizard reveal" id="wizard">
+    <form class="wizard reveal" id="wizard" name="brief" method="POST"
+          data-netlify="true" data-netlify-honeypot="bot-field" netlify>
+      <!-- Netlify Forms: pola wymagane przez backend. form-name musi = name formularza.
+           bot-field to honeypot Netlify (ukryty; boty go wypełniają, ludzie nie). -->
+      <input type="hidden" name="form-name" value="brief">
+      <p class="netlify-hp" hidden><label>Nie wypełniaj: <input name="bot-field"></label></p>
       <div class="wizard-top">
         <div class="progress-meta">
           <span class="stepname" id="stepName">Czego potrzebujesz</span>
@@ -1060,7 +1065,7 @@ footer .foot-inner{ display:flex; flex-wrap:wrap; gap:12px 24px; justify-content
           <p class="estimate-note">To orientacyjne widełki, nie ostateczna oferta. Dokładną cenę i termin potwierdzimy w ciągu 48h.</p>
         </div>
       </div>
-    </div>
+    </form>
   </div>
 </section>
 
@@ -1362,10 +1367,13 @@ footer .foot-inner{ display:flex; flex-wrap:wrap; gap:12px 24px; justify-content
     submitBrief(formState);
   });
 
+  // W <form> Enter w polu tekstowym wywołałby natywny submit (przeładowanie strony).
+  // Blokujemy go — wysyłką steruje wyłącznie przycisk „Wyślij brief".
+  wizard.addEventListener("submit", function(e){ e.preventDefault(); });
+
   /* ============================================================
      WYSYŁKA BRIEFU
      ============================================================ */
-  var FORM_ENDPOINT = "ENDPOINT_FORMULARZA"; // wklej adres z Formspree, np. https://formspree.io/f/xxxxxxxx — patrz admin.html
   var submitErrorEl = document.getElementById("submitError");
   var btnSubmitDefaultHTML = btnSubmit.innerHTML;
   var estimateBox = document.getElementById("estimateBox");
@@ -1419,37 +1427,28 @@ footer .foot-inner{ display:flex; flex-wrap:wrap; gap:12px 24px; justify-content
       return;
     }
 
-    var payload = {
-      "Imię i nazwisko": data.imie,
-      "Firma / organizacja": data.firma || "—",
-      "E-mail": data.email,
-      "Telefon": data.telefon || "—",
-      "Czego potrzebuje": data.potrzeba,
-      "Ma stronę?": data.masz_strone,
-      "Obecna strona": data.obecna_strona || "—",
-      "Funkcje": data.funkcje.length ? data.funkcje.join(", ") : "—",
-      "Materiały": data.materialy.length ? data.materialy.join(", ") : "—",
-      "Termin": data.termin,
-      "Budżet": data.budzet,
-      "Opis": data.opis || "—"
-    };
-
     setSubmitting(true);
     hideSubmitError();
 
-    fetch(FORM_ENDPOINT, {
+    // Netlify Forms: kodujemy CAŁY formularz. Wszystkie 4 kroki są w DOM (ukrywane
+    // przez display:none, więc pola nadal istnieją) — FormData łapie komplet.
+    // Checkboxy (funkcje, materialy) serializują się jako wiele wartości tego samego
+    // klucza. form-name=brief (ukryte pole) jest wymagane przez Netlify.
+    var body = new URLSearchParams(new FormData(wizard)).toString();
+
+    fetch("/", {
       method: "POST",
-      headers: { "Content-Type": "application/json", "Accept": "application/json" },
-      body: JSON.stringify(payload)
+      headers: { "Content-Type": "application/x-www-form-urlencoded" },
+      body: body
     }).then(function(res){
       if (!res.ok) throw new Error("HTTP " + res.status);
       renderEstimate(data);
       showThankYou();
     }).catch(function(err){
       console.error("Błąd wysyłki briefu:", err);
-      showSubmitError();
+      showSubmitError();      // NIE kasujemy wpisanych danych — można spróbować ponownie
     }).finally(function(){
-      setSubmitting(false);
+      setSubmitting(false);   // odblokuj przycisk
     });
   }
 
