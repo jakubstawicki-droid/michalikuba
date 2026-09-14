@@ -640,6 +640,29 @@ footer .foot-inner{ display:flex; flex-wrap:wrap; gap:12px 24px; justify-content
 </head>
 <body>
 
+<!-- ===== Netlify Forms — atrapa wykrywana przy deployu =====
+     Netlify parsuje statyczny HTML w poszukiwaniu formularzy; główny kreator jest
+     obsługiwany przez JS (submit fetch-em), więc dokładamy tę ukrytą atrapę z pełną
+     listą pól. To oficjalny sposób dla formularzy obsługiwanych JS-em. Musi mieć te
+     same name= co realna wysyłka; wartości nieistotne. Poza głównym <form>. -->
+<form name="brief" method="POST" data-netlify="true" data-netlify-honeypot="bot-field" hidden>
+  <input type="hidden" name="form-name" value="brief">
+  <input type="text" name="bot-field">
+  <input type="text" name="potrzeba">
+  <input type="text" name="masz_strone">
+  <input type="text" name="obecna_strona">
+  <input type="text" name="funkcje">
+  <input type="text" name="materialy">
+  <input type="text" name="termin">
+  <input type="text" name="budzet">
+  <input type="text" name="imie">
+  <input type="text" name="firma">
+  <input type="email" name="email">
+  <input type="tel" name="telefon">
+  <textarea name="opis"></textarea>
+  <input type="text" name="rodo">
+</form>
+
 <a href="#portfolio" class="skip">Przejdź do portfolio</a>
 
 <!-- ================= NAV ================= -->

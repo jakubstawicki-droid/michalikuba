@@ -1,0 +1,5 @@
+# Statyczny HTML — brak procesu budowania.
+# publish = katalog główny repo (tu leży index.html).
+[build]
+  publish = "."
+  command = ""
