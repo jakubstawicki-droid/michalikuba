@@ -70,8 +70,8 @@
   "name": "Jakub & Michał — strony i aplikacje webowe",
   "description": "Dwuosobowe studio z Warszawy. Robimy strony internetowe i aplikacje webowe: wizytówki, landing page, systemy zapisów i płatności, aplikacje z kontami użytkowników.",
   "url": "https://jakubstawicki-droid.github.io/michalikuba/",
-  "telephone": "MOJ_TELEFON",
-  "email": "MOJ_MAIL",
+  "telephone": "+48575566058",
+  "email": "bezerek@icloud.com",
   "areaServed": "PL",
   "address": {
     "@type": "PostalAddress",
@@ -606,6 +606,18 @@ label.inp{ display:block; margin-bottom:0; }
   font-size:clamp(1.6rem,1.2rem+2vw,2.2rem); margin:0 0 10px; letter-spacing:-0.02em; }
 .wizard-done p{ color:var(--ink-soft); max-width:44ch; margin:0 auto; }
 
+.estimate-box{
+  margin:28px auto 0; padding:22px 26px; max-width:44ch;
+  background:var(--accent-wash); border:1px solid var(--accent-line); border-radius:var(--radius);
+}
+.estimate-box .estimate-label{ margin:0 0 6px; font-size:.82rem; font-weight:600; letter-spacing:.04em; text-transform:uppercase; color:var(--accent-ink); }
+.estimate-box .estimate-amount{
+  margin:0 0 8px; font-family:"Fraunces",serif; font-weight:600;
+  font-variation-settings:"SOFT" 50,"WONK" 0,"opsz" 72;
+  font-size:clamp(1.6rem,1.3rem + 1.5vw,2.1rem); letter-spacing:-0.02em; color:var(--ink);
+}
+.estimate-box .estimate-note{ margin:0; font-size:.85rem; color:var(--ink-soft); max-width:none; }
+
 /* ============================================================
    KONTAKT / STOPKA
    ============================================================ */
@@ -1012,7 +1024,7 @@ footer .foot-inner{ display:flex; flex-wrap:wrap; gap:12px 24px; justify-content
             <label class="rodo" id="rodoBox">
               <input type="checkbox" name="rodo">
               <span class="mark"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></span>
-              <span class="txt">Zgadzam się na przetwarzanie moich danych w celu przygotowania wyceny i kontaktu w tej sprawie. Administratorem danych jest [ADMINISTRATOR_DANYCH]. Dane usuwamy na żądanie i nie przekazujemy nikomu. Szczegóły w <a href="polityka-prywatnosci.html" target="_blank" rel="noopener noreferrer">polityce prywatności</a>.</span>
+              <span class="txt">Zgadzam się na przetwarzanie moich danych w celu przygotowania wyceny i kontaktu w tej sprawie. Administratorami danych są Jakub Stawicki i Michał Stachowski (kontakt: bezerek@icloud.com). Dane usuwamy na żądanie i nie przekazujemy nikomu. Szczegóły w <a href="polityka-prywatnosci.html" target="_blank" rel="noopener noreferrer">polityce prywatności</a>.</span>
             </label>
             <p class="err-msg" data-for="rodo"></p>
           </div>
@@ -1027,7 +1039,7 @@ footer .foot-inner{ display:flex; flex-wrap:wrap; gap:12px 24px; justify-content
       </div>
 
       <p class="submit-error" id="submitError" hidden>
-        Nie udało się wysłać briefu. Napisz bezpośrednio: <a href="mailto:MOJ_MAIL">MOJ_MAIL</a>.
+        Nie udało się wysłać briefu. Napisz bezpośrednio: <a href="mailto:bezerek@icloud.com">bezerek@icloud.com</a>.
       </p>
 
       <div class="wizard-nav">
@@ -1042,6 +1054,11 @@ footer .foot-inner{ display:flex; flex-wrap:wrap; gap:12px 24px; justify-content
         <div class="check"><svg viewBox="0 0 24 24" fill="none" stroke="#2b2bff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div>
         <h3>Dzięki — odezwiemy się w ciągu 48 godzin.</h3>
         <p>Mamy Twój brief. Przygotujemy konkretną wycenę i termin, i wrócimy do Ciebie mailem lub telefonicznie.</p>
+        <div class="estimate-box" id="estimateBox" hidden>
+          <p class="estimate-label">Szacowana wycena na podstawie Twoich odpowiedzi</p>
+          <p class="estimate-amount" id="estimateAmount"></p>
+          <p class="estimate-note">To orientacyjne widełki, nie ostateczna oferta. Dokładną cenę i termin potwierdzimy w ciągu 48h.</p>
+        </div>
       </div>
     </div>
   </div>
@@ -1058,11 +1075,11 @@ footer .foot-inner{ display:flex; flex-wrap:wrap; gap:12px 24px; justify-content
     <div class="contact-grid">
       <div class="contact-card reveal">
         <p class="lbl">Telefon</p>
-        <a href="tel:MOJ_TELEFON">MOJ_TELEFON</a>
+        <a href="tel:+48575566058">+48 575 566 058</a>
       </div>
       <div class="contact-card reveal">
         <p class="lbl">E-mail</p>
-        <a href="mailto:MOJ_MAIL">MOJ_MAIL</a>
+        <a href="mailto:bezerek@icloud.com">bezerek@icloud.com</a>
       </div>
     </div>
   </div>
@@ -1070,7 +1087,7 @@ footer .foot-inner{ display:flex; flex-wrap:wrap; gap:12px 24px; justify-content
 
 <footer>
   <div class="container foot-inner">
-    <span>© <span id="year"></span> [ADMINISTRATOR_DANYCH] · Jakub &amp; Michał · Strony i aplikacje webowe · Warszawa</span>
+    <span>© <span id="year"></span> Jakub Stawicki i Michał Stachowski · Strony i aplikacje webowe · Warszawa</span>
     <span style="display:flex; gap:20px; align-items:center;">
       <a href="polityka-prywatnosci.html" style="color:inherit; text-decoration:none;">Polityka prywatności</a>
       <a href="#brief" style="color:var(--accent-ink); font-weight:600; text-decoration:none;">Wyceń projekt →</a>
@@ -1348,14 +1365,56 @@ footer .foot-inner{ display:flex; flex-wrap:wrap; gap:12px 24px; justify-content
   /* ============================================================
      WYSYŁKA BRIEFU
      ============================================================ */
-  var FORM_ENDPOINT = "ENDPOINT_FORMULARZA"; // URL z Formspree lub access key z Web3Forms
+  var FORM_ENDPOINT = "ENDPOINT_FORMULARZA"; // wklej adres z Formspree, np. https://formspree.io/f/xxxxxxxx — patrz admin.html
   var submitErrorEl = document.getElementById("submitError");
   var btnSubmitDefaultHTML = btnSubmit.innerHTML;
+  var estimateBox = document.getElementById("estimateBox");
+  var estimateAmountEl = document.getElementById("estimateAmount");
+
+  /* ---------- Szacowana wycena (orientacyjna, na podstawie cennika) ---------- */
+  var ESTIMATE_BASE = {
+    "Strona wizytówka": 2500,
+    "Landing page pod kampanię/wydarzenie": 4000,
+    "Sklep / system zapisów": 9000,
+    "Aplikacja webowa z kontami": 9000
+  };
+  var ESTIMATE_EXTRA = {
+    "Zapisy / rezerwacje": 1000,
+    "Płatności online": 1500,
+    "Konta użytkowników": 1500,
+    "Blog / aktualności": 500,
+    "Galeria": 300,
+    "Wersja obcojęzyczna": 800,
+    "Integracja z Google Maps": 200,
+    "Newsletter": 300
+  };
+  function formatPLN(n){
+    var rounded = Math.round(n / 10) * 10;
+    return rounded.toString().replace(/\B(?=(\d{3})+(?!\d))/g, " ") + " zł";
+  }
+
+  function renderEstimate(data){
+    var base = ESTIMATE_BASE[data.potrzeba];
+    if (!base){ estimateBox.hidden = true; return; }
+
+    var low = base;
+    data.funkcje.forEach(function(f){ low += ESTIMATE_EXTRA[f] || 0; });
+    var high = low + Math.round(low * 0.3);
+
+    if (data.termin === "Na już (do 2 tygodni)"){
+      low = Math.round(low * 1.15);
+      high = Math.round(high * 1.15);
+    }
+
+    estimateAmountEl.textContent = formatPLN(low) + " – " + formatPLN(high);
+    estimateBox.hidden = false;
+  }
 
   function submitBrief(data){
     var honeypot = wizard.querySelector('[name="firma_www"]');
     if (honeypot && honeypot.value){
       // Pole wypełnił bot — cichy fałszywy sukces, bez wysyłki.
+      renderEstimate(data);
       showThankYou();
       return;
     }
@@ -1384,6 +1443,7 @@ footer .foot-inner{ display:flex; flex-wrap:wrap; gap:12px 24px; justify-content
       body: JSON.stringify(payload)
     }).then(function(res){
       if (!res.ok) throw new Error("HTTP " + res.status);
+      renderEstimate(data);
       showThankYou();
     }).catch(function(err){
       console.error("Błąd wysyłki briefu:", err);

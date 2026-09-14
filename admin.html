@@ -3,6 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex, nofollow">
 
 <!-- Zasada projektu: treść widoczna DOMYŚLNIE, animacja to tylko wzbogacenie.
      Ten skrypt musi być w <head> i wykonać się przed malowaniem:
@@ -29,8 +30,8 @@
   }
 </script>
 
-<title>Nie znaleziono strony (404) — Jakub i Michał</title>
-<meta name="description" content="Strona, której szukasz, nie istnieje albo została przeniesiona. Wróć na stronę główną Jakub i Michał.">
+<title>Panel zgłoszeń (dla administratorów) — Jakub i Michał</title>
+<meta name="description" content="Strona nieindeksowana: dostęp do zgłoszeń z formularza briefu dla Jakuba i Michała.">
 
 <!-- ===== Favicon =====
      favicon.svg = wersja główna (skaluje się ostro). PNG 32px = fallback dla przeglądarek
@@ -46,9 +47,9 @@
 <meta property="og:type" content="website">
 <meta property="og:locale" content="pl_PL">
 <meta property="og:site_name" content="Jakub & Michał">
-<meta property="og:title" content="Nie znaleziono strony (404) — Jakub i Michał">
-<meta property="og:description" content="Strona, której szukasz, nie istnieje albo została przeniesiona. Wróć na stronę główną Jakub i Michał.">
-<meta property="og:url" content="https://jakubstawicki-droid.github.io/michalikuba/404.html">
+<meta property="og:title" content="Panel zgłoszeń (dla administratorów) — Jakub i Michał">
+<meta property="og:description" content="Strona nieindeksowana: dostęp do zgłoszeń z formularza briefu dla Jakuba i Michała.">
+<meta property="og:url" content="https://jakubstawicki-droid.github.io/michalikuba/admin.html">
 <meta property="og:image" content="https://jakubstawicki-droid.github.io/michalikuba/img/og-cover.jpg">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
@@ -56,12 +57,12 @@
 
 <!-- ===== Twitter / X ===== -->
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:title" content="Nie znaleziono strony (404) — Jakub i Michał">
-<meta name="twitter:description" content="Strona, której szukasz, nie istnieje albo została przeniesiona. Wróć na stronę główną Jakub i Michał.">
+<meta name="twitter:title" content="Panel zgłoszeń (dla administratorów) — Jakub i Michał">
+<meta name="twitter:description" content="Strona nieindeksowana: dostęp do zgłoszeń z formularza briefu dla Jakuba i Michała.">
 <meta name="twitter:image" content="https://jakubstawicki-droid.github.io/michalikuba/img/og-cover.jpg">
 <meta name="twitter:image:alt" content="Jakub & Michał — strony i aplikacje webowe, Warszawa">
 
-<link rel="canonical" href="https://jakubstawicki-droid.github.io/michalikuba/404.html">
+<link rel="canonical" href="https://jakubstawicki-droid.github.io/michalikuba/admin.html">
 
 
 <!-- Fraunces: font zmienny. Prosimy o zakres osi opsz/wght/SOFT/WONK i sterujemy nimi
@@ -569,6 +570,18 @@ label.inp{ display:block; margin-bottom:0; }
   font-size:clamp(1.6rem,1.2rem+2vw,2.2rem); margin:0 0 10px; letter-spacing:-0.02em; }
 .wizard-done p{ color:var(--ink-soft); max-width:44ch; margin:0 auto; }
 
+.estimate-box{
+  margin:28px auto 0; padding:22px 26px; max-width:44ch;
+  background:var(--accent-wash); border:1px solid var(--accent-line); border-radius:var(--radius);
+}
+.estimate-box .estimate-label{ margin:0 0 6px; font-size:.82rem; font-weight:600; letter-spacing:.04em; text-transform:uppercase; color:var(--accent-ink); }
+.estimate-box .estimate-amount{
+  margin:0 0 8px; font-family:"Fraunces",serif; font-weight:600;
+  font-variation-settings:"SOFT" 50,"WONK" 0,"opsz" 72;
+  font-size:clamp(1.6rem,1.3rem + 1.5vw,2.1rem); letter-spacing:-0.02em; color:var(--ink);
+}
+.estimate-box .estimate-note{ margin:0; font-size:.85rem; color:var(--ink-soft); max-width:none; }
+
 /* ============================================================
    KONTAKT / STOPKA
    ============================================================ */
@@ -612,13 +625,29 @@ footer .foot-inner{ display:flex; flex-wrap:wrap; gap:12px 24px; justify-content
 
 <!-- ================= HERO ================= -->
 
-<main id="main" style="min-height:60vh; display:flex; align-items:center;">
-<section style="width:100%; padding-block:clamp(56px,9vw,96px);">
-  <div class="container" style="text-align:center;">
-    <p class="eyebrow">404</p>
-    <h1 class="h-serif" style="font-size:clamp(2.2rem,1.6rem + 3vw,3.6rem); margin:0 0 16px;">Nie znaleźliśmy tej strony.</h1>
-    <p style="color:var(--ink-soft); max-width:48ch; margin:0 auto 32px;">Link mógł się zdezaktualizować albo strona nigdy tu nie była.</p>
-    <a href="index.html" class="btn btn-primary">Strona główna <span class="arrow">→</span></a>
+<main id="main">
+<section style="padding-top:clamp(56px,9vw,96px);">
+  <div class="container" style="max-width:640px;">
+    <p class="eyebrow">Dla administratorów</p>
+    <h1 class="h-serif" style="font-size:clamp(1.9rem,1.5rem + 1.8vw,2.6rem); margin:0 0 16px;">Panel zgłoszeń</h1>
+
+    <p style="color:var(--ink-soft);">Ta strona jest hostowana na GitHub Pages, czyli bez własnego serwera i bazy danych. Dlatego zgłoszenia z formularza briefu nie są zapisywane na tej stronie — trafiają od razu na maila oraz do panelu dostawcy formularza, który ma prawdziwe logowanie (e-mail i hasło), a nie hasło wpisane w kodzie strony, które każdy mógłby podejrzeć w przeglądarce.</p>
+
+    <div style="margin:28px 0; padding:22px 24px; background:var(--surface); border:1px solid var(--line); border-radius:var(--radius-lg);">
+      <p style="margin:0 0 14px; font-weight:600;">Logowanie do zgłoszeń</p>
+      <p style="margin:0 0 18px; color:var(--ink-soft); font-size:.95rem;">Wszystkie briefy, historia i eksport do CSV są dostępne po zalogowaniu w panelu Formspree.</p>
+      <a href="https://formspree.io/login" target="_blank" rel="noopener noreferrer" class="btn btn-primary">Zaloguj się do Formspree <span class="arrow">↗</span></a>
+    </div>
+
+    <h2 class="h-serif" style="font-size:1.15rem; margin:32px 0 8px;">Pierwsze uruchomienie</h2>
+    <ol style="color:var(--ink-soft); padding-left:20px;">
+      <li>Załóż darmowe konto na <a href="https://formspree.io" target="_blank" rel="noopener noreferrer">formspree.io</a> (e-mail: bezerek@icloud.com).</li>
+      <li>Utwórz nowy formularz — Formspree poda adres w formacie <code>https://formspree.io/f/xxxxxxxx</code>.</li>
+      <li>Wklej ten adres jako wartość <code>FORM_ENDPOINT</code> w <code>index.html</code>.</li>
+      <li>Od tej pory każdy wysłany brief trafi na maila i pojawi się w panelu Formspree pod przyciskiem powyżej.</li>
+    </ol>
+
+    <p style="margin-top:40px;"><a href="index.html" class="btn btn-ghost">← Wróć na stronę główną</a></p>
   </div>
 </section>
 </main>
