@@ -125,6 +125,10 @@ body{
 
 img{ max-width:100%; display:block; }
 a{ color:inherit; }
+/* Atrybut `hidden` MUSI wygrywać z regułami display autora (np. .shot-ph{display:flex},
+   .btn{display:inline-flex}). Bez tego `hidden` jest ignorowany i placeholder/przyciski
+   pokazują się mimo poprawnego stanu. To reguła, której brakowało samodzielnemu plikowi. */
+[hidden]{ display:none !important; }
 
 /* ============================================================
    TYPOGRAFIA NAGŁÓWKÓW — FRAUNCES (tylko tu i w liczbach cennika)
