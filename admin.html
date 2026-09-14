@@ -1,0 +1,677 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex, nofollow">
+
+<!-- Zasada projektu: treść widoczna DOMYŚLNIE, animacja to tylko wzbogacenie.
+     Ten skrypt musi być w <head> i wykonać się przed malowaniem:
+     1) oznacza <html class="js"> — CSS chowa .reveal WYŁĄCZNIE gdy JS działa;
+     2) definiuje fallbacki onerror ZANIM parser dojdzie do obrazków (żeby onerror
+        nie rzucał ReferenceError, gdy pliku brak). -->
+<script>
+  document.documentElement.className += " js";
+  // Zablokuj przywracanie pozycji scrolla z poprzedniej wizyty — najwcześniej jak się da.
+  if ("scrollRestoration" in history) { try { history.scrollRestoration = "manual"; } catch(_){} }
+  function shotFail(img){
+    img.style.display = "none";
+    var shot = img.closest(".shot"); if(!shot) return;
+    var mob = shot.querySelector(".shot-mob"); if(mob) mob.style.display = "none";
+    var ph = shot.querySelector(".shot-ph"); if(ph) ph.hidden = false;
+  }
+  function logoFail(img){
+    img.style.display = "none";
+    var ph = img.parentNode.querySelector(".client-logo-ph"); if(ph) ph.hidden = false;
+  }
+  function photoFail(img){
+    img.style.display = "none";
+    var ph = img.parentNode.querySelector(".ph"); if(ph) ph.hidden = false;
+  }
+</script>
+
+<title>Panel zgłoszeń (dla administratorów) — Jakub i Michał</title>
+<meta name="description" content="Strona nieindeksowana: dostęp do zgłoszeń z formularza briefu dla Jakuba i Michała.">
+
+<!-- ===== Favicon =====
+     favicon.svg = wersja główna (skaluje się ostro). PNG 32px = fallback dla przeglądarek
+     bez obsługi SVG. apple-touch-icon = ekran główny iOS. Kolejność ma znaczenie:
+     przeglądarka z obsługą SVG bierze pierwszy, reszta schodzi do PNG. -->
+<link rel="icon" type="image/svg+xml" href="img/favicon.svg">
+<link rel="icon" type="image/png" sizes="32x32" href="img/favicon-32.png">
+<link rel="apple-touch-icon" sizes="180x180" href="img/apple-touch-icon.png">
+
+<!-- ===== Open Graph (Facebook / Messenger / WhatsApp) =====
+     Linki w WhatsApp/Messenger czytają og:image jako ABSOLUTNY URL — względna
+     ścieżka bywa ignorowana przez scrapery, dlatego adres jest pełny. -->
+<meta property="og:type" content="website">
+<meta property="og:locale" content="pl_PL">
+<meta property="og:site_name" content="Jakub & Michał">
+<meta property="og:title" content="Panel zgłoszeń (dla administratorów) — Jakub i Michał">
+<meta property="og:description" content="Strona nieindeksowana: dostęp do zgłoszeń z formularza briefu dla Jakuba i Michała.">
+<meta property="og:url" content="https://jakubstawicki-droid.github.io/michalikuba/admin.html">
+<meta property="og:image" content="https://jakubstawicki-droid.github.io/michalikuba/img/og-cover.jpg">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="Jakub & Michał — strony i aplikacje webowe, Warszawa">
+
+<!-- ===== Twitter / X ===== -->
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Panel zgłoszeń (dla administratorów) — Jakub i Michał">
+<meta name="twitter:description" content="Strona nieindeksowana: dostęp do zgłoszeń z formularza briefu dla Jakuba i Michała.">
+<meta name="twitter:image" content="https://jakubstawicki-droid.github.io/michalikuba/img/og-cover.jpg">
+<meta name="twitter:image:alt" content="Jakub & Michał — strony i aplikacje webowe, Warszawa">
+
+<link rel="canonical" href="https://jakubstawicki-droid.github.io/michalikuba/admin.html">
+
+
+<!-- Fraunces: font zmienny. Prosimy o zakres osi opsz/wght/SOFT/WONK i sterujemy nimi
+     przez font-variation-settings (WONK 0, SOFT umiarkowany, opsz dopasowany do rozmiaru).
+     Kolejność osi w URL: alfabetycznie, osie zarejestrowane (małe litery) przed własnymi. -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght,SOFT,WONK@9..144,400..700,0..100,0..1&family=Inter+Tight:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+<style>
+/* ============================================================
+   ZMIENNE / BAZA
+   ============================================================ */
+:root{
+  --bg:            #faf9f6;   /* ciepły off-white */
+  --bg-2:          #f2f0ea;   /* delikatnie ciemniejsza sekcja */
+  --surface:       #ffffff;
+  --ink:           #1a1917;   /* prawie-czarny, ciepły */
+  --ink-soft:      #565248;   /* tekst drugorzędny */
+  --ink-faint:     #8a8478;
+  --line:          #e4e0d6;   /* obrysy / separatory */
+  --line-strong:   #d3cec1;
+  --accent:        #2b2bff;   /* atramentowy indygo */
+  --accent-ink:    #1f1fd6;
+  --accent-wash:   #eeeeff;   /* jasne tło akcentu */
+  --accent-line:   #c9c9ff;
+  --ok:            #1c7a4f;
+  --err:           #c02626;
+  --err-wash:      #fdecec;
+
+  --radius:        14px;
+  --radius-lg:     20px;
+  --maxw:          1120px;
+  --gutter:        clamp(20px, 5vw, 48px);
+
+  --shadow-sm:     0 1px 2px rgba(26,25,23,.04), 0 2px 8px rgba(26,25,23,.05);
+  --shadow-md:     0 4px 12px rgba(26,25,23,.06), 0 12px 32px rgba(26,25,23,.08);
+
+  /* Fraunces – dobrane ostrożnie. WONK 0, SOFT umiarkowany.
+     opsz nadpisujemy per element wg realnego rozmiaru. */
+  --fr-soft: 40;
+  --fr-wonk: 0;
+}
+
+*,*::before,*::after{ box-sizing:border-box; }
+
+html{ scroll-behavior:smooth; -webkit-text-size-adjust:100%; }
+@media (prefers-reduced-motion: reduce){ html{ scroll-behavior:auto; } }
+
+body{
+  margin:0;
+  background:var(--bg);
+  color:var(--ink);
+  font-family:"Inter Tight", system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+  font-size:clamp(16px, 1rem + .15vw, 18px);
+  line-height:1.6;
+  font-weight:400;
+  letter-spacing:-0.005em;
+  -webkit-font-smoothing:antialiased;
+  text-rendering:optimizeLegibility;
+}
+
+img{ max-width:100%; display:block; }
+a{ color:inherit; }
+/* Atrybut `hidden` MUSI wygrywać z regułami display autora (np. .shot-ph{display:flex},
+   .btn{display:inline-flex}). Bez tego `hidden` jest ignorowany i placeholder/przyciski
+   pokazują się mimo poprawnego stanu. To reguła, której brakowało samodzielnemu plikowi. */
+[hidden]{ display:none !important; }
+
+/* ============================================================
+   TYPOGRAFIA NAGŁÓWKÓW — FRAUNCES (tylko tu i w liczbach cennika)
+   ============================================================ */
+.h-serif{
+  font-family:"Fraunces", Georgia, "Times New Roman", serif;
+  font-weight:650;
+  font-variation-settings:"SOFT" var(--fr-soft), "WONK" var(--fr-wonk), "opsz" 40;
+  letter-spacing:-0.02em;
+  line-height:1.08;
+  color:var(--ink);
+}
+
+.container{
+  width:100%;
+  max-width:var(--maxw);
+  margin-inline:auto;
+  padding-inline:var(--gutter);
+}
+
+section{ padding-block:clamp(56px, 9vw, 112px); }
+
+.eyebrow{
+  font-size:.8rem;
+  font-weight:600;
+  letter-spacing:.12em;
+  text-transform:uppercase;
+  color:var(--accent-ink);
+  margin:0 0 14px;
+}
+.section-head{ max-width:56ch; margin-bottom:clamp(32px, 5vw, 56px); }
+.section-head h2{
+  font-family:"Fraunces", Georgia, serif;
+  font-weight:650;
+  font-variation-settings:"SOFT" var(--fr-soft), "WONK" var(--fr-wonk), "opsz" 60;
+  font-size:clamp(1.9rem, 1.3rem + 3vw, 3rem);
+  letter-spacing:-0.022em;
+  line-height:1.05;
+  margin:0 0 .5em;
+}
+.section-head p{ color:var(--ink-soft); font-size:1.05rem; margin:0; }
+
+/* ============================================================
+   PRZYCISKI
+   ============================================================ */
+.btn{
+  display:inline-flex; align-items:center; gap:.55em;
+  font-family:inherit; font-size:1rem; font-weight:600;
+  padding:14px 24px; border-radius:999px;
+  border:1px solid transparent; cursor:pointer;
+  text-decoration:none; line-height:1;
+  transition:transform .15s ease, background .15s ease, border-color .15s ease, box-shadow .15s ease;
+  min-height:52px;
+}
+.btn-primary{ background:var(--accent); color:#fff; }
+.btn-primary:hover{ background:var(--accent-ink); transform:translateY(-1px); }
+.btn-ghost{ background:transparent; color:var(--ink); border-color:var(--line-strong); }
+.btn-ghost:hover{ border-color:var(--ink); transform:translateY(-1px); }
+.btn:focus-visible{ outline:3px solid var(--accent-line); outline-offset:2px; }
+.btn .arrow{ transition:transform .15s ease; }
+.btn:hover .arrow{ transform:translateX(3px); }
+
+/* ============================================================
+   NAV
+   ============================================================ */
+header.nav{
+  position:sticky; top:0; z-index:50;
+  background:color-mix(in srgb, var(--bg) 88%, transparent);
+  backdrop-filter:saturate(140%) blur(10px);
+  border-bottom:1px solid transparent;
+  transition:border-color .2s ease, background .2s ease;
+}
+header.nav.scrolled{ border-bottom-color:var(--line); }
+.nav-inner{ display:flex; align-items:center; justify-content:space-between; min-height:64px; }
+.brand{ font-family:"Fraunces",serif; font-weight:650;
+  font-variation-settings:"SOFT" var(--fr-soft),"WONK" var(--fr-wonk),"opsz" 28;
+  font-size:1.15rem; letter-spacing:-0.02em; text-decoration:none; }
+.brand .dot{ color:var(--accent); }
+.nav-links{ display:none; gap:28px; align-items:center; }
+.nav-links a{ text-decoration:none; color:var(--ink-soft); font-weight:500; font-size:.95rem; transition:color .15s ease; }
+.nav-links a:hover{ color:var(--ink); }
+.nav-cta{ display:none; }
+@media (min-width:840px){
+  .nav-links{ display:flex; }
+  .nav-cta{ display:inline-flex; }
+}
+
+/* ============================================================
+   HERO
+   ============================================================ */
+.hero{ padding-top:clamp(48px, 8vw, 96px); padding-bottom:clamp(40px, 7vw, 80px); }
+.hero .kicker{
+  display:inline-flex; align-items:center; gap:8px;
+  font-size:.85rem; font-weight:500; color:var(--ink-soft);
+  background:var(--surface); border:1px solid var(--line);
+  padding:7px 14px; border-radius:999px; margin-bottom:26px;
+}
+.hero .kicker .pulse{ width:8px; height:8px; border-radius:50%; background:var(--ok); box-shadow:0 0 0 0 rgba(28,122,79,.5); }
+@media (prefers-reduced-motion: no-preference){
+  .hero .kicker .pulse{ animation:pulse 2.4s ease-out infinite; }
+  @keyframes pulse{ 0%{box-shadow:0 0 0 0 rgba(28,122,79,.45);} 70%{box-shadow:0 0 0 9px rgba(28,122,79,0);} 100%{box-shadow:0 0 0 0 rgba(28,122,79,0);} }
+}
+.hero h1{
+  font-family:"Fraunces",serif; font-weight:600;
+  font-variation-settings:"SOFT" 50, "WONK" 0, "opsz" 144;
+  font-size:clamp(2.6rem, 1.6rem + 6vw, 5.2rem);
+  line-height:1.02; letter-spacing:-0.03em; margin:0 0 .35em; max-width:16ch;
+}
+.hero h1 em{ font-style:italic; font-variation-settings:"SOFT" 60,"WONK" 0,"opsz" 144; color:var(--accent); }
+.hero .lead{ font-size:clamp(1.1rem, 1rem + .5vw, 1.35rem); color:var(--ink-soft); max-width:52ch; margin:0 0 14px; }
+.hero .proof{
+  font-size:1.02rem; color:var(--ink); max-width:54ch; margin:0 0 32px;
+  padding-left:16px; border-left:3px solid var(--accent);
+}
+.hero .proof strong{ font-weight:600; }
+.hero-actions{ display:flex; flex-wrap:wrap; gap:14px; }
+
+/* ============================================================
+   REVEAL (IntersectionObserver)
+   ============================================================ */
+/* Domyślnie WIDOCZNE. Ukrywamy do animacji tylko, gdy JS działa (html.js).
+   Jeśli JS padnie albo IO nie wystrzeli — treść i tak jest na ekranie. */
+.reveal{ opacity:1; transform:none; }
+.js .reveal{ opacity:0; transform:translateY(18px); transition:opacity .6s ease, transform .6s ease; }
+.js .reveal.in{ opacity:1; transform:none; }
+@media (prefers-reduced-motion: reduce){
+  .js .reveal{ opacity:1 !important; transform:none !important; transition:none !important; }
+}
+
+/* ============================================================
+   PORTFOLIO
+   ============================================================ */
+#portfolio{ background:var(--bg-2); }
+.work-grid{ display:grid; gap:22px; }
+
+.work-card{
+  background:var(--surface); border:1px solid var(--line);
+  border-radius:var(--radius-lg); overflow:hidden;
+  transition:transform .2s ease, box-shadow .2s ease, border-color .2s ease;
+  display:flex; flex-direction:column;
+}
+.work-card:hover{ transform:translateY(-3px); box-shadow:var(--shadow-md); border-color:var(--line-strong); }
+
+.work-body{ padding:clamp(22px, 4vw, 36px); display:flex; flex-direction:column; gap:16px; flex:1; }
+.work-meta{ display:flex; align-items:center; gap:10px; flex-wrap:wrap; }
+.badge{
+  font-size:.72rem; font-weight:600; letter-spacing:.08em; text-transform:uppercase;
+  padding:5px 10px; border-radius:999px; background:var(--bg-2); color:var(--ink-soft); border:1px solid var(--line);
+}
+.badge.accent{ background:var(--accent); color:#fff; border-color:var(--accent); }
+.badge.own{ background:var(--accent-wash); color:var(--accent-ink); border-color:var(--accent-line); }
+
+.work-card h3{
+  font-family:"Fraunces",serif; font-weight:650;
+  font-variation-settings:"SOFT" var(--fr-soft),"WONK" var(--fr-wonk),"opsz" 30;
+  font-size:1.5rem; line-height:1.1; letter-spacing:-0.02em; margin:0;
+}
+.work-client{ font-size:.9rem; color:var(--ink-faint); font-weight:500; margin:-8px 0 0; }
+.work-card p.desc{ margin:0; color:var(--ink-soft); font-size:1rem; }
+.tags{ display:flex; flex-wrap:wrap; gap:8px; margin-top:auto; }
+.tag{ font-size:.8rem; font-weight:500; color:var(--ink-soft); background:var(--bg); border:1px solid var(--line); padding:5px 11px; border-radius:8px; }
+.work-link{
+  display:inline-flex; align-items:center; gap:7px; align-self:flex-start;
+  font-weight:600; color:var(--accent-ink); text-decoration:none; font-size:.98rem;
+}
+.work-link:hover{ text-decoration:underline; }
+.work-link .arrow{ transition:transform .15s ease; }
+.work-link:hover .arrow{ transform:translate(2px,-2px); }
+
+/* ---- Kompozycja screenshotów: mobile nachodzi na prawy-dolny róg desktopu ---- */
+.shot{
+  position:relative; aspect-ratio:16/10; overflow:hidden;
+  border-bottom:1px solid var(--line); background:var(--bg-2);
+}
+.shot-desk{
+  position:absolute; inset:0; width:100%; height:100%;
+  /* Przy zrzutach stron liczy się LEWY GÓRNY róg (logo, początek nagłówka) —
+     nie środek. Bez tego cover ucina lewą stronę przy węższym kontenerze. */
+  object-fit:cover; object-position:left top; display:block;
+}
+.shot-mob{
+  position:absolute; right:16px; bottom:16px;      /* w całości wewnątrz kadru, odsunięty od krawędzi */
+  width:22%; max-width:108px; height:auto;         /* mniejszy — mieści się też na wąskich kartach (390px) */
+  border-radius:12px; border:3px solid var(--surface);
+  box-shadow:0 6px 20px rgba(26,25,23,.20);
+  object-fit:cover; object-position:top center; display:block; z-index:2;
+}
+/* Placeholder na screenshot — czysty, celowo oznaczony (gdy brak plików) */
+.shot-ph{
+  position:absolute; inset:0; background:
+    repeating-linear-gradient(45deg, var(--bg-2) 0 12px, #ece9e1 12px 24px);
+  display:flex; align-items:center; justify-content:center; text-align:center; z-index:3;
+}
+.shot-ph span{
+  font-size:.8rem; font-weight:600; letter-spacing:.06em; text-transform:uppercase;
+  color:var(--ink-faint); background:var(--surface); border:1px dashed var(--line-strong);
+  padding:8px 14px; border-radius:8px;
+}
+
+/* Znacznik „Prowadził:" — dyskretny, nie konkuruje z nazwą projektu */
+.prowadzil{
+  display:inline-flex; align-items:center; gap:6px;
+  font-size:.82rem; font-weight:500; color:var(--ink-faint);
+}
+.prowadzil b{ font-weight:600; color:var(--ink-soft); }
+.prowadzil .who-dot{ width:5px; height:5px; border-radius:50%; background:var(--accent); flex:none; }
+
+/* Karta wyróżniona (Wolters Kluwer) — pełna szerokość */
+.work-card.feature{ border-color:var(--accent-line); box-shadow:0 0 0 1px var(--accent-line), var(--shadow-sm); }
+.work-card.feature .feature-inner{ display:grid; }
+@media (min-width:820px){
+  .work-card.feature .feature-inner{ grid-template-columns:1.05fr 1fr; }
+  .work-card.feature .shot{ border-bottom:none; border-left:1px solid var(--line); aspect-ratio:auto; min-height:100%; }
+}
+.work-card.feature h3{ font-size:clamp(1.6rem, 1.2rem + 1.5vw, 2.1rem);
+  font-variation-settings:"SOFT" var(--fr-soft),"WONK" var(--fr-wonk),"opsz" 48; }
+
+/* Placeholder na logo klienta */
+.client-logo-ph{
+  display:inline-flex; align-items:center; gap:10px;
+  border:1px dashed var(--accent-line); background:var(--accent-wash);
+  color:var(--accent-ink); font-size:.78rem; font-weight:600; letter-spacing:.04em;
+  padding:9px 14px; border-radius:10px; height:44px;
+}
+.client-logo-ph .box{ width:24px; height:24px; border-radius:5px; background:var(--accent-line); }
+
+@media (min-width:720px){
+  .work-grid.two{ grid-template-columns:1fr 1fr; }
+}
+
+/* Logo klienta (img z fallbackiem) */
+.client-logo{ height:28px; width:auto; display:inline-block; }
+
+/* ============================================================
+   KTO TO ROBI
+   ============================================================ */
+.who-grid{ display:grid; gap:18px; }
+@media (min-width:640px){ .who-grid{ grid-template-columns:1fr 1fr; } }
+.who-card{
+  background:var(--surface); border:1px solid var(--line); border-radius:var(--radius-lg);
+  padding:26px; display:flex; gap:18px; align-items:flex-start;
+  transition:transform .2s ease, box-shadow .2s ease;
+}
+.who-card:hover{ transform:translateY(-3px); box-shadow:var(--shadow-sm); }
+.who-photo{
+  flex:none; width:84px; height:84px; border-radius:50%; overflow:hidden;
+  position:relative; background:var(--bg-2); border:1px solid var(--line);
+}
+.who-photo img{ position:absolute; inset:0; width:100%; height:100%; object-fit:cover; display:block; }
+.who-photo .ph{
+  position:absolute; inset:0; display:grid; place-items:center; text-align:center;
+  background:repeating-linear-gradient(45deg, var(--bg-2) 0 8px, #ece9e1 8px 16px);
+}
+.who-photo .ph span{ font-size:.6rem; font-weight:600; letter-spacing:.04em; text-transform:uppercase; color:var(--ink-faint); }
+.who-info h3{
+  font-family:"Fraunces",serif; font-weight:650;
+  font-variation-settings:"SOFT" var(--fr-soft),"WONK" var(--fr-wonk),"opsz" 30;
+  font-size:1.4rem; letter-spacing:-0.02em; margin:0 0 2px;
+}
+.who-info .role{ font-size:.8rem; font-weight:600; letter-spacing:.08em; text-transform:uppercase; color:var(--accent-ink); margin:0 0 10px; }
+.who-info p{ margin:0; color:var(--ink-soft); font-size:.98rem; }
+
+/* ============================================================
+   USŁUGI
+   ============================================================ */
+.tiles{ display:grid; gap:18px; }
+@media (min-width:600px){ .tiles{ grid-template-columns:1fr 1fr; } }
+@media (min-width:960px){ .tiles{ grid-template-columns:repeat(4,1fr); } }
+.tile{
+  background:var(--surface); border:1px solid var(--line); border-radius:var(--radius);
+  padding:26px 22px; display:flex; flex-direction:column; gap:12px;
+  transition:transform .2s ease, box-shadow .2s ease;
+}
+.tile:hover{ transform:translateY(-3px); box-shadow:var(--shadow-sm); }
+.tile .num{ font-family:"Fraunces",serif; font-weight:600;
+  font-variation-settings:"SOFT" var(--fr-soft),"WONK" var(--fr-wonk),"opsz" 24;
+  font-size:1.1rem; color:var(--accent); }
+.tile h3{ margin:0; font-size:1.15rem; font-weight:600; letter-spacing:-0.01em; }
+.tile p{ margin:0; color:var(--ink-soft); font-size:.97rem; }
+
+/* ============================================================
+   JAK PRACUJEMY
+   ============================================================ */
+#proces{ background:var(--bg-2); }
+.steps{ display:grid; gap:18px; counter-reset:step; }
+@media (min-width:720px){ .steps{ grid-template-columns:repeat(4,1fr); } }
+.step{
+  background:var(--surface); border:1px solid var(--line); border-radius:var(--radius);
+  padding:24px 20px; position:relative;
+}
+.step .n{
+  font-family:"Fraunces",serif; font-weight:600;
+  font-variation-settings:"SOFT" var(--fr-soft),"WONK" var(--fr-wonk),"opsz" 40;
+  font-size:2rem; color:var(--accent); line-height:1; margin-bottom:12px; display:block;
+}
+.step h3{ margin:0 0 6px; font-size:1.08rem; font-weight:600; }
+.step p{ margin:0; color:var(--ink-soft); font-size:.95rem; }
+.proces-note{
+  margin-top:26px; padding:18px 22px; background:var(--accent-wash);
+  border:1px solid var(--accent-line); border-radius:var(--radius); color:var(--accent-ink);
+  font-weight:500; font-size:1rem;
+}
+.proces-note strong{ font-weight:600; }
+
+/* ============================================================
+   CENNIK
+   ============================================================ */
+.price-grid{ display:grid; gap:18px; }
+@media (min-width:720px){ .price-grid{ grid-template-columns:repeat(3,1fr); } }
+.price-card{
+  background:var(--surface); border:1px solid var(--line); border-radius:var(--radius-lg);
+  padding:30px 26px; display:flex; flex-direction:column; gap:8px;
+}
+.price-card .label{ font-weight:600; font-size:1.05rem; }
+.price-card .amount{
+  font-family:"Fraunces",serif; font-weight:600;
+  font-variation-settings:"SOFT" 50,"WONK" 0,"opsz" 96;
+  font-size:clamp(2.4rem, 1.8rem + 2.5vw, 3.4rem); line-height:1; letter-spacing:-0.03em; color:var(--ink);
+}
+.price-card .amount .od{ font-family:"Inter Tight",sans-serif; font-size:.9rem; font-weight:600; color:var(--ink-faint);
+  display:block; margin-bottom:4px; letter-spacing:0; }
+.price-card .amount .cur{ font-size:.5em; color:var(--ink-soft); }
+.price-card p{ margin:6px 0 0; color:var(--ink-soft); font-size:.95rem; }
+.price-note{ margin-top:24px; font-size:1.05rem; color:var(--ink); font-weight:500; }
+.price-note em{ font-style:normal; color:var(--accent-ink); }
+
+/* ============================================================
+   FORMULARZ — KREATOR
+   ============================================================ */
+#brief{ background:var(--ink); color:#f5f3ee; }
+#brief .section-head h2{ color:#fff; }
+#brief .section-head p{ color:#c9c4b8; }
+#brief .eyebrow{ color:#a9a9ff; }
+
+.wizard{
+  background:var(--surface); color:var(--ink);
+  border-radius:var(--radius-lg); box-shadow:var(--shadow-md);
+  max-width:760px; margin-inline:auto; overflow:hidden;
+}
+.wizard-top{ padding:22px clamp(20px,4vw,34px) 0; }
+.progress-meta{ display:flex; justify-content:space-between; align-items:baseline; margin-bottom:12px; }
+.progress-meta .stepname{ font-weight:600; font-size:1.02rem; }
+.progress-meta .count{ font-size:.85rem; color:var(--ink-faint); font-weight:500; }
+.progress-track{ height:6px; background:var(--bg-2); border-radius:999px; overflow:hidden; }
+.progress-fill{ height:100%; width:25%; background:var(--accent); border-radius:999px; transition:width .35s cubic-bezier(.4,0,.2,1); }
+
+.wizard-body{ padding:clamp(22px,4vw,34px); }
+.step-panel{ display:none; }
+.step-panel.active{ display:block; animation:fade .3s ease; }
+@media (prefers-reduced-motion: no-preference){ @keyframes fade{ from{opacity:0; transform:translateY(6px);} to{opacity:1;transform:none;} } }
+
+.field{ margin-bottom:24px; }
+.field:last-child{ margin-bottom:0; }
+.field > .q{ font-weight:600; font-size:1.05rem; margin:0 0 4px; }
+.field > .hint{ font-size:.88rem; color:var(--ink-faint); margin:0 0 12px; }
+
+/* Kafelki (radio / checkbox) */
+.tile-options{ display:grid; gap:10px; }
+@media (min-width:560px){ .tile-options.cols-2{ grid-template-columns:1fr 1fr; } }
+.opt{
+  position:relative; display:flex; align-items:center; gap:12px;
+  min-height:56px; padding:12px 16px;
+  border:1.5px solid var(--line-strong); border-radius:12px;
+  background:var(--bg); cursor:pointer; user-select:none;
+  transition:border-color .15s ease, background .15s ease, box-shadow .15s ease;
+}
+.opt:hover{ border-color:var(--ink-faint); }
+.opt input{ position:absolute; opacity:0; width:0; height:0; }
+.opt .mark{
+  flex:none; width:22px; height:22px; border:2px solid var(--line-strong);
+  display:grid; place-items:center; transition:all .15s ease; background:#fff;
+}
+.opt .mark.radio{ border-radius:50%; }
+.opt .mark.check{ border-radius:6px; }
+.opt .mark svg{ width:12px; height:12px; opacity:0; transform:scale(.5); transition:all .15s ease; }
+.opt .txt{ font-weight:500; font-size:1rem; line-height:1.3; }
+.opt:focus-within{ outline:3px solid var(--accent-line); outline-offset:2px; }
+.opt.selected{ border-color:var(--accent); background:var(--accent-wash); box-shadow:inset 0 0 0 1px var(--accent); }
+.opt.selected .mark{ border-color:var(--accent); background:var(--accent); }
+.opt.selected .mark svg{ opacity:1; transform:scale(1); }
+
+/* Pola tekstowe */
+label.inp{ display:block; margin-bottom:0; }
+.inp .q{ display:block; font-weight:600; font-size:1rem; margin-bottom:6px; }
+.inp .req{ color:var(--accent-ink); }
+.inp input, .inp textarea{
+  width:100%; font-family:inherit; font-size:1rem; color:var(--ink);
+  padding:13px 15px; border:1.5px solid var(--line-strong); border-radius:11px;
+  background:var(--bg); transition:border-color .15s ease, box-shadow .15s ease;
+}
+.inp input:focus, .inp textarea:focus{ outline:none; border-color:var(--accent); box-shadow:0 0 0 3px var(--accent-line); background:#fff; }
+.inp textarea{ resize:vertical; min-height:110px; }
+.inp input.invalid, .inp textarea.invalid{ border-color:var(--err); background:var(--err-wash); }
+.err-msg{ color:var(--err); font-size:.85rem; font-weight:500; margin-top:6px; min-height:1em; display:none; }
+.err-msg.show{ display:block; }
+
+.field.field-err > .q{ color:var(--err); }
+.field .group-err{ color:var(--err); font-size:.85rem; font-weight:500; margin-top:8px; display:none; }
+.field .group-err.show{ display:block; }
+
+/* RODO */
+.rodo{ display:flex; gap:12px; align-items:flex-start; padding:16px; border:1.5px solid var(--line-strong); border-radius:12px; background:var(--bg); cursor:pointer; }
+.rodo.selected{ border-color:var(--accent); background:var(--accent-wash); }
+.rodo input{ position:absolute; opacity:0; }
+.rodo .mark{ flex:none; margin-top:2px; width:22px;height:22px;border:2px solid var(--line-strong);border-radius:6px;display:grid;place-items:center;background:#fff;transition:all .15s ease; }
+.rodo.selected .mark{ border-color:var(--accent); background:var(--accent); }
+.rodo .mark svg{ width:12px;height:12px;opacity:0;transform:scale(.5);transition:all .15s ease; }
+.rodo.selected .mark svg{ opacity:1; transform:scale(1); }
+.rodo .txt{ font-size:.9rem; color:var(--ink-soft); line-height:1.5; }
+.rodo:focus-within{ outline:3px solid var(--accent-line); outline-offset:2px; }
+
+/* Honeypot — offscreen, nie display:none (część botów to omija) */
+.hp-field{ position:absolute; left:-9999px; width:1px; height:1px; overflow:hidden; }
+
+.submit-error{
+  margin:0 clamp(20px,4vw,34px) 20px; padding:14px 16px;
+  background:var(--err-wash); border:1px solid var(--err); border-radius:10px;
+  color:var(--err); font-size:.92rem; font-weight:500;
+}
+.submit-error a{ color:var(--err); text-decoration:underline; font-weight:600; }
+
+/* Nawigacja kreatora */
+.wizard-nav{ display:flex; justify-content:space-between; align-items:center; gap:12px;
+  padding:20px clamp(20px,4vw,34px); border-top:1px solid var(--line); background:var(--bg); }
+.wizard-nav .spacer{ flex:1; }
+.btn-back{ background:none; border:none; color:var(--ink-soft); font-family:inherit; font-size:1rem; font-weight:600; cursor:pointer; padding:12px 8px; }
+.btn-back:hover{ color:var(--ink); }
+.btn-back[hidden]{ display:none; }
+
+/* Ekran potwierdzenia */
+.wizard-done{ display:none; padding:clamp(40px,7vw,70px) clamp(20px,4vw,34px); text-align:center; }
+.wizard-done.show{ display:block; animation:fade .4s ease; }
+.wizard-done .check{ width:68px; height:68px; margin:0 auto 22px; border-radius:50%; background:var(--accent-wash); border:2px solid var(--accent); display:grid; place-items:center; }
+.wizard-done .check svg{ width:32px; height:32px; }
+.wizard-done h3{ font-family:"Fraunces",serif; font-weight:650;
+  font-variation-settings:"SOFT" var(--fr-soft),"WONK" var(--fr-wonk),"opsz" 48;
+  font-size:clamp(1.6rem,1.2rem+2vw,2.2rem); margin:0 0 10px; letter-spacing:-0.02em; }
+.wizard-done p{ color:var(--ink-soft); max-width:44ch; margin:0 auto; }
+
+.estimate-box{
+  margin:28px auto 0; padding:22px 26px; max-width:44ch;
+  background:var(--accent-wash); border:1px solid var(--accent-line); border-radius:var(--radius);
+}
+.estimate-box .estimate-label{ margin:0 0 6px; font-size:.82rem; font-weight:600; letter-spacing:.04em; text-transform:uppercase; color:var(--accent-ink); }
+.estimate-box .estimate-amount{
+  margin:0 0 8px; font-family:"Fraunces",serif; font-weight:600;
+  font-variation-settings:"SOFT" 50,"WONK" 0,"opsz" 72;
+  font-size:clamp(1.6rem,1.3rem + 1.5vw,2.1rem); letter-spacing:-0.02em; color:var(--ink);
+}
+.estimate-box .estimate-note{ margin:0; font-size:.85rem; color:var(--ink-soft); max-width:none; }
+
+/* ============================================================
+   KONTAKT / STOPKA
+   ============================================================ */
+#kontakt .contact-grid{ display:grid; gap:16px; }
+@media (min-width:600px){ #kontakt .contact-grid{ grid-template-columns:1fr 1fr; } }
+.contact-card{ background:var(--surface); border:1px solid var(--line); border-radius:var(--radius); padding:26px; }
+.contact-card .lbl{ font-size:.8rem; text-transform:uppercase; letter-spacing:.1em; color:var(--ink-faint); font-weight:600; margin-bottom:8px; }
+.contact-card a{ font-family:"Fraunces",serif; font-weight:600;
+  font-variation-settings:"SOFT" var(--fr-soft),"WONK" var(--fr-wonk),"opsz" 32;
+  font-size:1.5rem; text-decoration:none; letter-spacing:-0.02em; color:var(--ink); }
+.contact-card a:hover{ color:var(--accent); }
+
+footer{ border-top:1px solid var(--line); padding-block:32px; color:var(--ink-faint); font-size:.9rem; }
+footer .foot-inner{ display:flex; flex-wrap:wrap; gap:12px 24px; justify-content:space-between; align-items:center; }
+
+/* Skip link */
+.skip{ position:absolute; left:-999px; top:8px; background:var(--accent); color:#fff; padding:10px 16px; border-radius:8px; z-index:100; }
+.skip:focus{ left:8px; }
+</style>
+</head>
+
+<body>
+
+
+<a href="#main" class="skip">Przejdź do treści</a>
+
+<!-- ================= NAV ================= -->
+<header class="nav" id="nav">
+  <div class="container nav-inner">
+    <a href="index.html#top" class="brand">Jakub<span class="dot"> &amp; </span>Michał</a>
+    <nav class="nav-links" aria-label="Główna">
+      <a href="index.html#portfolio">Realizacje</a>
+      <a href="index.html#kto">Kto to robi</a>
+      <a href="index.html#uslugi">Co robimy</a>
+      <a href="index.html#proces">Jak pracujemy</a>
+      <a href="index.html#cennik">Cennik</a>
+    </nav>
+    <a href="index.html#brief" class="btn btn-primary nav-cta">Wypełnij brief</a>
+  </div>
+</header>
+
+<!-- ================= HERO ================= -->
+
+<main id="main">
+<section style="padding-top:clamp(56px,9vw,96px);">
+  <div class="container" style="max-width:640px;">
+    <p class="eyebrow">Dla administratorów</p>
+    <h1 class="h-serif" style="font-size:clamp(1.9rem,1.5rem + 1.8vw,2.6rem); margin:0 0 16px;">Panel zgłoszeń</h1>
+
+    <p style="color:var(--ink-soft);">Ta strona jest hostowana na GitHub Pages, czyli bez własnego serwera i bazy danych. Dlatego zgłoszenia z formularza briefu nie są zapisywane na tej stronie — trafiają od razu na maila oraz do panelu dostawcy formularza, który ma prawdziwe logowanie (e-mail i hasło), a nie hasło wpisane w kodzie strony, które każdy mógłby podejrzeć w przeglądarce.</p>
+
+    <div style="margin:28px 0; padding:22px 24px; background:var(--surface); border:1px solid var(--line); border-radius:var(--radius-lg);">
+      <p style="margin:0 0 14px; font-weight:600;">Logowanie do zgłoszeń</p>
+      <p style="margin:0 0 18px; color:var(--ink-soft); font-size:.95rem;">Wszystkie briefy, historia i eksport do CSV są dostępne po zalogowaniu w panelu Formspree.</p>
+      <a href="https://formspree.io/login" target="_blank" rel="noopener noreferrer" class="btn btn-primary">Zaloguj się do Formspree <span class="arrow">↗</span></a>
+    </div>
+
+    <h2 class="h-serif" style="font-size:1.15rem; margin:32px 0 8px;">Pierwsze uruchomienie</h2>
+    <ol style="color:var(--ink-soft); padding-left:20px;">
+      <li>Załóż darmowe konto na <a href="https://formspree.io" target="_blank" rel="noopener noreferrer">formspree.io</a> (e-mail: bezerek@icloud.com).</li>
+      <li>Utwórz nowy formularz — Formspree poda adres w formacie <code>https://formspree.io/f/xxxxxxxx</code>.</li>
+      <li>Wklej ten adres jako wartość <code>FORM_ENDPOINT</code> w <code>index.html</code>.</li>
+      <li>Od tej pory każdy wysłany brief trafi na maila i pojawi się w panelu Formspree pod przyciskiem powyżej.</li>
+    </ol>
+
+    <p style="margin-top:40px;"><a href="index.html" class="btn btn-ghost">← Wróć na stronę główną</a></p>
+  </div>
+</section>
+</main>
+
+<footer>
+  <div class="container foot-inner">
+    <span>© <span id="year"></span> Jakub Stawicki i Michał Stachowski · Strony i aplikacje webowe · Warszawa</span>
+    <span style="display:flex; gap:20px; align-items:center;">
+      <a href="polityka-prywatnosci.html" style="color:inherit; text-decoration:none;">Polityka prywatności</a>
+      <a href="index.html#brief" style="color:var(--accent-ink); font-weight:600; text-decoration:none;">Wyceń projekt →</a>
+    </span>
+  </div>
+</footer>
+
+
+<script>
+"use strict";
+(function(){
+  document.getElementById("year").textContent = new Date().getFullYear();
+  var nav = document.getElementById("nav");
+  var onScroll = function(){ nav.classList.toggle("scrolled", window.scrollY > 8); };
+  onScroll();
+  window.addEventListener("scroll", onScroll, { passive:true });
+})();
+</script>
+</body>
+</html>

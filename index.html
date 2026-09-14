@@ -41,16 +41,14 @@
 <link rel="apple-touch-icon" sizes="180x180" href="img/apple-touch-icon.png">
 
 <!-- ===== Open Graph (Facebook / Messenger / WhatsApp) =====
-     UWAGA: og:url musi być pełnym, docelowym adresem — podmień [ADRES_STRONY] po wdrożeniu.
-     Linki w WhatsApp/Messenger czytają og:image jako ABSOLUTNY URL — po wdrożeniu zmień
-     na https://twoja-domena/img/og-cover.jpg (względna ścieżka bywa ignorowana przez scrapery). -->
+     Linki w WhatsApp/Messenger czytają og:image jako ABSOLUTNY URL — względna
+     ścieżka bywa ignorowana przez scrapery, dlatego adres jest pełny. -->
 <meta property="og:type" content="website">
 <meta property="og:locale" content="pl_PL">
 <meta property="og:site_name" content="Jakub & Michał">
 <meta property="og:title" content="Robimy strony i aplikacje webowe, które działają">
 <meta property="og:description" content="Dwuosobowe studio z Warszawy. Konkurs dla Wolters Kluwer, platforma zapisów dla fundacji z 700 dzieci. Brief → wycena w 48h.">
 <meta property="og:url" content="https://jakubstawicki-droid.github.io/michalikuba/">
-<!-- og:image do przygotowania w grafice — patrz specyfikacja przekazana osobno. URL absolutny (WhatsApp/Messenger nie czytają ścieżek względnych). -->
 <meta property="og:image" content="https://jakubstawicki-droid.github.io/michalikuba/img/og-cover.jpg">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
@@ -62,6 +60,46 @@
 <meta name="twitter:description" content="Dwuosobowe studio z Warszawy. Konkurs dla Wolters Kluwer, platforma zapisów dla fundacji z 700 dzieci. Brief → wycena w 48h.">
 <meta name="twitter:image" content="https://jakubstawicki-droid.github.io/michalikuba/img/og-cover.jpg">
 <meta name="twitter:image:alt" content="Jakub & Michał — strony i aplikacje webowe, Warszawa">
+
+<link rel="canonical" href="https://jakubstawicki-droid.github.io/michalikuba/">
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "ProfessionalService",
+  "name": "Jakub & Michał — strony i aplikacje webowe",
+  "description": "Dwuosobowe studio z Warszawy. Robimy strony internetowe i aplikacje webowe: wizytówki, landing page, systemy zapisów i płatności, aplikacje z kontami użytkowników.",
+  "url": "https://jakubstawicki-droid.github.io/michalikuba/",
+  "telephone": "+48575566058",
+  "email": "bezerek@icloud.com",
+  "areaServed": "PL",
+  "address": {
+    "@type": "PostalAddress",
+    "addressLocality": "Warszawa",
+    "addressCountry": "PL"
+  },
+  "makesOffer": [
+    { "@type": "Offer", "itemOffered": { "@type": "Service", "name": "Strony wizytówki" } },
+    { "@type": "Offer", "itemOffered": { "@type": "Service", "name": "Landing pages" } },
+    { "@type": "Offer", "itemOffered": { "@type": "Service", "name": "Systemy zapisów i płatności" } },
+    { "@type": "Offer", "itemOffered": { "@type": "Service", "name": "Aplikacje webowe" } }
+  ],
+  "employee": [
+    {
+      "@type": "Person",
+      "name": "Jakub",
+      "jobTitle": "Partner · Frontend & Product",
+      "worksFor": { "@type": "ProfessionalService", "name": "Jakub & Michał — strony i aplikacje webowe" }
+    },
+    {
+      "@type": "Person",
+      "name": "Michał",
+      "jobTitle": "Partner · Backend & Systemy",
+      "worksFor": { "@type": "ProfessionalService", "name": "Jakub & Michał — strony i aplikacje webowe" }
+    }
+  ]
+}
+</script>
 
 <!-- Fraunces: font zmienny. Prosimy o zakres osi opsz/wght/SOFT/WONK i sterujemy nimi
      przez font-variation-settings (WONK 0, SOFT umiarkowany, opsz dopasowany do rozmiaru).
@@ -410,7 +448,7 @@ header.nav.scrolled{ border-bottom-color:var(--line); }
 .tile p{ margin:0; color:var(--ink-soft); font-size:.97rem; }
 
 /* ============================================================
-   JAK PRACUJĘ
+   JAK PRACUJEMY
    ============================================================ */
 #proces{ background:var(--bg-2); }
 .steps{ display:grid; gap:18px; counter-reset:step; }
@@ -540,6 +578,16 @@ label.inp{ display:block; margin-bottom:0; }
 .rodo .txt{ font-size:.9rem; color:var(--ink-soft); line-height:1.5; }
 .rodo:focus-within{ outline:3px solid var(--accent-line); outline-offset:2px; }
 
+/* Honeypot — offscreen, nie display:none (część botów to omija) */
+.hp-field{ position:absolute; left:-9999px; width:1px; height:1px; overflow:hidden; }
+
+.submit-error{
+  margin:0 clamp(20px,4vw,34px) 20px; padding:14px 16px;
+  background:var(--err-wash); border:1px solid var(--err); border-radius:10px;
+  color:var(--err); font-size:.92rem; font-weight:500;
+}
+.submit-error a{ color:var(--err); text-decoration:underline; font-weight:600; }
+
 /* Nawigacja kreatora */
 .wizard-nav{ display:flex; justify-content:space-between; align-items:center; gap:12px;
   padding:20px clamp(20px,4vw,34px); border-top:1px solid var(--line); background:var(--bg); }
@@ -557,6 +605,18 @@ label.inp{ display:block; margin-bottom:0; }
   font-variation-settings:"SOFT" var(--fr-soft),"WONK" var(--fr-wonk),"opsz" 48;
   font-size:clamp(1.6rem,1.2rem+2vw,2.2rem); margin:0 0 10px; letter-spacing:-0.02em; }
 .wizard-done p{ color:var(--ink-soft); max-width:44ch; margin:0 auto; }
+
+.estimate-box{
+  margin:28px auto 0; padding:22px 26px; max-width:44ch;
+  background:var(--accent-wash); border:1px solid var(--accent-line); border-radius:var(--radius);
+}
+.estimate-box .estimate-label{ margin:0 0 6px; font-size:.82rem; font-weight:600; letter-spacing:.04em; text-transform:uppercase; color:var(--accent-ink); }
+.estimate-box .estimate-amount{
+  margin:0 0 8px; font-family:"Fraunces",serif; font-weight:600;
+  font-variation-settings:"SOFT" 50,"WONK" 0,"opsz" 72;
+  font-size:clamp(1.6rem,1.3rem + 1.5vw,2.1rem); letter-spacing:-0.02em; color:var(--ink);
+}
+.estimate-box .estimate-note{ margin:0; font-size:.85rem; color:var(--ink-soft); max-width:none; }
 
 /* ============================================================
    KONTAKT / STOPKA
@@ -617,7 +677,7 @@ footer .foot-inner{ display:flex; flex-wrap:wrap; gap:12px 24px; justify-content
   <div class="container">
     <div class="section-head reveal">
       <p class="eyebrow">Realizacje</p>
-      <h2>Co już zbudowałem</h2>
+      <h2>Co zbudowaliśmy</h2>
       <p>Trzy projekty, które pokazują zakres: landing dla korporacji, pełny system zapisów, własny produkt.</p>
     </div>
 
@@ -628,7 +688,7 @@ footer .foot-inner{ display:flex; flex-wrap:wrap; gap:12px 24px; justify-content
           <div class="work-body">
             <div class="work-meta">
               <span class="badge accent">Klient korporacyjny</span>
-              <!-- Logo klienta: podmień plik img/logo-wk.svg. Gdy pliku brak, pokaże się fallback obok. -->
+              <!-- Gdy pliku brak, pokaże się fallback obok. -->
               <img class="client-logo" src="img/logo-wk.svg" width="120" height="28"
                    alt="Logo Wolters Kluwer Polska" onerror="logoFail(this)">
               <span class="client-logo-ph" hidden role="img" aria-label="Miejsce na logo klienta">
@@ -649,8 +709,7 @@ footer .foot-inner{ display:flex; flex-wrap:wrap; gap:12px 24px; justify-content
               <span class="prowadzil"><span class="who-dot"></span>Prowadził: <b>Jakub</b></span>
             </div>
           </div>
-          <!-- Screenshoty: podmień img/liderzy-desktop.webp + img/liderzy-mobile.webp.
-               Desktop pierwszej karty NIE ma loading="lazy" (jest nad zgięciem). -->
+          <!-- Desktop pierwszej karty NIE ma loading="lazy" (jest nad zgięciem). -->
           <div class="shot">
             <img class="shot-desk" src="img/liderzy-desktop.webp" width="1200" height="750"
                  alt="Zrzut ekranu strony konkursu Liderzy Zmian – widok na desktopie" onerror="shotFail(this)">
@@ -665,7 +724,6 @@ footer .foot-inner{ display:flex; flex-wrap:wrap; gap:12px 24px; justify-content
     <!-- DWIE MNIEJSZE KARTY -->
     <div class="work-grid two">
       <article class="work-card reveal">
-        <!-- Screenshoty: podmień img/alpiclub-desktop.webp + img/alpiclub-mobile.webp -->
         <div class="shot">
           <img class="shot-desk" src="img/alpiclub-desktop.webp" width="1200" height="750" loading="lazy"
                alt="Zrzut ekranu platformy AlpiClub – widok na desktopie" onerror="shotFail(this)">
@@ -692,7 +750,6 @@ footer .foot-inner{ display:flex; flex-wrap:wrap; gap:12px 24px; justify-content
       </article>
 
       <article class="work-card reveal">
-        <!-- Screenshoty: podmień img/qhlab-desktop.webp + img/qhlab-mobile.webp -->
         <div class="shot">
           <img class="shot-desk" src="img/qhlab-desktop.webp" width="1200" height="750" loading="lazy"
                alt="Zrzut ekranu platformy qhlab.pl – widok na desktopie" onerror="shotFail(this)">
@@ -732,7 +789,7 @@ footer .foot-inner{ display:flex; flex-wrap:wrap; gap:12px 24px; justify-content
     </div>
     <div class="who-grid">
       <div class="who-card reveal">
-        <!-- Zdjęcie: podmień plik img/jakub.webp. Gdy brak, pokaże się placeholder. -->
+        <!-- Gdy pliku brak, pokaże się placeholder. -->
         <div class="who-photo">
           <img src="img/jakub.webp" width="168" height="168" loading="lazy"
                alt="Zdjęcie: Jakub" onerror="photoFail(this)">
@@ -740,12 +797,12 @@ footer .foot-inner{ display:flex; flex-wrap:wrap; gap:12px 24px; justify-content
         </div>
         <div class="who-info">
           <h3>Jakub</h3>
-          <p class="role">[ROLA_JAKUB]</p>
+          <p class="role">Partner · Frontend &amp; Product</p>
           <p>Prowadzi landingi i projekty produktowe — od konkursu dla Wolters Kluwer po własny qhlab.pl.</p>
         </div>
       </div>
       <div class="who-card reveal">
-        <!-- Zdjęcie: podmień plik img/michal.webp. Gdy brak, pokaże się placeholder. -->
+        <!-- Gdy pliku brak, pokaże się placeholder. -->
         <div class="who-photo">
           <img src="img/michal.webp" width="168" height="168" loading="lazy"
                alt="Zdjęcie: Michał" onerror="photoFail(this)">
@@ -753,7 +810,7 @@ footer .foot-inner{ display:flex; flex-wrap:wrap; gap:12px 24px; justify-content
         </div>
         <div class="who-info">
           <h3>Michał</h3>
-          <p class="role">[ROLA_MICHAL]</p>
+          <p class="role">Partner · Backend &amp; Systemy</p>
           <p>Prowadzi systemy z logiką — konta, zapisy i płatności, jak platforma AlpiClub dla 700 dzieci.</p>
         </div>
       </div>
@@ -777,11 +834,11 @@ footer .foot-inner{ display:flex; flex-wrap:wrap; gap:12px 24px; justify-content
   </div>
 </section>
 
-<!-- ================= JAK PRACUJĘ ================= -->
+<!-- ================= JAK PRACUJEMY ================= -->
 <section id="proces">
   <div class="container">
     <div class="section-head reveal">
-      <p class="eyebrow">Jak pracuję</p>
+      <p class="eyebrow">Jak pracujemy</p>
       <h2>Cztery kroki, zero niespodzianek</h2>
     </div>
     <div class="steps">
@@ -952,7 +1009,7 @@ footer .foot-inner{ display:flex; flex-wrap:wrap; gap:12px 24px; justify-content
           </div>
           <div class="field">
             <label class="inp">
-              <span class="q">Telefon <span class="req">*</span></span>
+              <span class="q">Telefon</span>
               <input type="tel" name="telefon" autocomplete="tel" inputmode="tel" placeholder="np. 512 345 678 lub +48 512 345 678">
             </label>
             <p class="err-msg" data-for="telefon"></p>
@@ -967,12 +1024,23 @@ footer .foot-inner{ display:flex; flex-wrap:wrap; gap:12px 24px; justify-content
             <label class="rodo" id="rodoBox">
               <input type="checkbox" name="rodo">
               <span class="mark"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></span>
-              <span class="txt">Zgadzam się na przetwarzanie moich danych w celu przygotowania wyceny i kontaktu w tej sprawie. Administratorem danych jest [ADMINISTRATOR_DANYCH]. Dane usuwamy na żądanie i nie przekazujemy nikomu.</span>
+              <span class="txt">Zgadzam się na przetwarzanie moich danych w celu przygotowania wyceny i kontaktu w tej sprawie. Administratorami danych są Jakub Stawicki i Michał Stachowski (kontakt: bezerek@icloud.com). Dane usuwamy na żądanie i nie przekazujemy nikomu. Szczegóły w <a href="polityka-prywatnosci.html" target="_blank" rel="noopener noreferrer">polityce prywatności</a>.</span>
             </label>
             <p class="err-msg" data-for="rodo"></p>
           </div>
+          <!-- Honeypot: niewidoczne dla ludzi, boty formularzowe często je wypełniają -->
+          <div class="field hp-field" aria-hidden="true">
+            <label class="inp">
+              <span class="q">Nie wypełniaj tego pola</span>
+              <input type="text" name="firma_www" tabindex="-1" autocomplete="off">
+            </label>
+          </div>
         </div>
       </div>
+
+      <p class="submit-error" id="submitError" hidden>
+        Nie udało się wysłać briefu. Napisz bezpośrednio: <a href="mailto:bezerek@icloud.com">bezerek@icloud.com</a>.
+      </p>
 
       <div class="wizard-nav">
         <button type="button" class="btn-back" id="btnBack" hidden>← Wstecz</button>
@@ -984,8 +1052,13 @@ footer .foot-inner{ display:flex; flex-wrap:wrap; gap:12px 24px; justify-content
       <!-- POTWIERDZENIE -->
       <div class="wizard-done" id="wizardDone">
         <div class="check"><svg viewBox="0 0 24 24" fill="none" stroke="#2b2bff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div>
-        <h3>Dzięki — odezwiemy się w ciągu 24 godzin.</h3>
+        <h3>Dzięki — odezwiemy się w ciągu 48 godzin.</h3>
         <p>Mamy Twój brief. Przygotujemy konkretną wycenę i termin, i wrócimy do Ciebie mailem lub telefonicznie.</p>
+        <div class="estimate-box" id="estimateBox" hidden>
+          <p class="estimate-label">Szacowana wycena na podstawie Twoich odpowiedzi</p>
+          <p class="estimate-amount" id="estimateAmount"></p>
+          <p class="estimate-note">To orientacyjne widełki, nie ostateczna oferta. Dokładną cenę i termin potwierdzimy w ciągu 48h.</p>
+        </div>
       </div>
     </div>
   </div>
@@ -1002,13 +1075,11 @@ footer .foot-inner{ display:flex; flex-wrap:wrap; gap:12px 24px; justify-content
     <div class="contact-grid">
       <div class="contact-card reveal">
         <p class="lbl">Telefon</p>
-        <!-- Podmień MOJ_TELEFON na numer, np. +48 500 600 700 -->
-        <a href="tel:MOJ_TELEFON">MOJ_TELEFON</a>
+        <a href="tel:+48575566058">+48 575 566 058</a>
       </div>
       <div class="contact-card reveal">
         <p class="lbl">E-mail</p>
-        <!-- Podmień MOJ_MAIL na adres, np. jakub@domena.pl -->
-        <a href="mailto:MOJ_MAIL">MOJ_MAIL</a>
+        <a href="mailto:bezerek@icloud.com">bezerek@icloud.com</a>
       </div>
     </div>
   </div>
@@ -1016,8 +1087,11 @@ footer .foot-inner{ display:flex; flex-wrap:wrap; gap:12px 24px; justify-content
 
 <footer>
   <div class="container foot-inner">
-    <span>© <span id="year"></span> [ADMINISTRATOR_DANYCH] · Jakub &amp; Michał · Strony i aplikacje webowe · Warszawa</span>
-    <a href="#brief" style="color:var(--accent-ink); font-weight:600; text-decoration:none;">Wyceń projekt →</a>
+    <span>© <span id="year"></span> Jakub Stawicki i Michał Stachowski · Strony i aplikacje webowe · Warszawa</span>
+    <span style="display:flex; gap:20px; align-items:center;">
+      <a href="polityka-prywatnosci.html" style="color:inherit; text-decoration:none;">Polityka prywatności</a>
+      <a href="#brief" style="color:var(--accent-ink); font-weight:600; text-decoration:none;">Wyceń projekt →</a>
+    </span>
   </div>
 </footer>
 
@@ -1202,7 +1276,7 @@ footer .foot-inner{ display:flex; flex-wrap:wrap; gap:12px 24px; justify-content
     if (step === 4){
       firstBad = validateField("imie", function(v){ return v.length >= 2; }, "Podaj imię i nazwisko.") || firstBad;
       firstBad = validateField("email", isEmail, "Podaj poprawny adres e-mail.") || firstBad;
-      firstBad = validateField("telefon", isPhonePL, "Podaj poprawny polski numer telefonu.") || firstBad;
+      firstBad = validateField("telefon", isPhonePLOrEmpty, "Podaj poprawny polski numer telefonu.") || firstBad;
       // RODO
       var rodoMsg = wizard.querySelector('.err-msg[data-for="rodo"]');
       var rodoBox = document.getElementById("rodoBox");
@@ -1215,7 +1289,7 @@ footer .foot-inner{ display:flex; flex-wrap:wrap; gap:12px 24px; justify-content
       // jeśli którekolwiek pole tekstowe niepoprawne -> ok=false
       if (!isFieldValid("imie", function(v){ return v.length >= 2; })) ok=false;
       if (!isFieldValid("email", isEmail)) ok=false;
-      if (!isFieldValid("telefon", isPhonePL)) ok=false;
+      if (!isFieldValid("telefon", isPhonePLOrEmpty)) ok=false;
     }
 
     if (!ok && firstBad){
@@ -1252,6 +1326,7 @@ footer .foot-inner{ display:flex; flex-wrap:wrap; gap:12px 24px; justify-content
     var digits = v.replace(/[\s\-\(\)]/g, "");
     return /^(\+48|0048|48)?\d{9}$/.test(digits);
   }
+  function isPhonePLOrEmpty(v){ return v === "" || isPhonePL(v); }
 
   /* ---------- Render kroku ---------- */
   function render(){
@@ -1288,47 +1363,115 @@ footer .foot-inner{ display:flex; flex-wrap:wrap; gap:12px 24px; justify-content
   });
 
   /* ============================================================
-     WYSYŁKA — jedno miejsce do podmiany na prawdziwy backend.
-     Na razie: log do konsoli w czytelnym formacie + ekran "dzięki".
-     Podmień treść funkcji na fetch('/api/brief', {...}) gdy backend będzie gotowy.
+     WYSYŁKA BRIEFU
      ============================================================ */
+  var FORM_ENDPOINT = "ENDPOINT_FORMULARZA"; // wklej adres z Formspree, np. https://formspree.io/f/xxxxxxxx — patrz admin.html
+  var submitErrorEl = document.getElementById("submitError");
+  var btnSubmitDefaultHTML = btnSubmit.innerHTML;
+  var estimateBox = document.getElementById("estimateBox");
+  var estimateAmountEl = document.getElementById("estimateAmount");
+
+  /* ---------- Szacowana wycena (orientacyjna, na podstawie cennika) ---------- */
+  var ESTIMATE_BASE = {
+    "Strona wizytówka": 2500,
+    "Landing page pod kampanię/wydarzenie": 4000,
+    "Sklep / system zapisów": 9000,
+    "Aplikacja webowa z kontami": 9000
+  };
+  var ESTIMATE_EXTRA = {
+    "Zapisy / rezerwacje": 1000,
+    "Płatności online": 1500,
+    "Konta użytkowników": 1500,
+    "Blog / aktualności": 500,
+    "Galeria": 300,
+    "Wersja obcojęzyczna": 800,
+    "Integracja z Google Maps": 200,
+    "Newsletter": 300
+  };
+  function formatPLN(n){
+    var rounded = Math.round(n / 10) * 10;
+    return rounded.toString().replace(/\B(?=(\d{3})+(?!\d))/g, " ") + " zł";
+  }
+
+  function renderEstimate(data){
+    var base = ESTIMATE_BASE[data.potrzeba];
+    if (!base){ estimateBox.hidden = true; return; }
+
+    var low = base;
+    data.funkcje.forEach(function(f){ low += ESTIMATE_EXTRA[f] || 0; });
+    var high = low + Math.round(low * 0.3);
+
+    if (data.termin === "Na już (do 2 tygodni)"){
+      low = Math.round(low * 1.15);
+      high = Math.round(high * 1.15);
+    }
+
+    estimateAmountEl.textContent = formatPLN(low) + " – " + formatPLN(high);
+    estimateBox.hidden = false;
+  }
+
   function submitBrief(data){
-    // ===== POCZĄTEK: MIEJSCE DO PODMIANY (integracja backendu) =====
-    console.groupCollapsed("%c📩 Nowy brief","color:#2b2bff;font-weight:bold;font-size:13px;");
-    console.log("Imię i nazwisko : ", data.imie);
-    console.log("Firma           : ", data.firma || "—");
-    console.log("E-mail          : ", data.email);
-    console.log("Telefon         : ", data.telefon);
-    console.log("Czego potrzebuje: ", data.potrzeba);
-    console.log("Ma stronę?      : ", data.masz_strone);
-    console.log("Obecna strona   : ", data.obecna_strona || "—");
-    console.log("Funkcje         : ", data.funkcje.length ? data.funkcje.join(", ") : "—");
-    console.log("Materiały       : ", data.materialy.length ? data.materialy.join(", ") : "—");
-    console.log("Termin          : ", data.termin);
-    console.log("Budżet          : ", data.budzet);
-    console.log("Opis            : ", data.opis || "—");
-    console.log("Zgoda RODO      : ", data.rodo ? "TAK" : "NIE");
-    console.log("%cPełny obiekt:", "color:#8a8478;");
-    console.log(JSON.parse(JSON.stringify(data)));
-    console.groupEnd();
+    var honeypot = wizard.querySelector('[name="firma_www"]');
+    if (honeypot && honeypot.value){
+      // Pole wypełnił bot — cichy fałszywy sukces, bez wysyłki.
+      renderEstimate(data);
+      showThankYou();
+      return;
+    }
 
-    /* Przykład docelowej wysyłki (odkomentuj i dostosuj endpoint):
-    fetch("/api/brief", {
+    var payload = {
+      "Imię i nazwisko": data.imie,
+      "Firma / organizacja": data.firma || "—",
+      "E-mail": data.email,
+      "Telefon": data.telefon || "—",
+      "Czego potrzebuje": data.potrzeba,
+      "Ma stronę?": data.masz_strone,
+      "Obecna strona": data.obecna_strona || "—",
+      "Funkcje": data.funkcje.length ? data.funkcje.join(", ") : "—",
+      "Materiały": data.materialy.length ? data.materialy.join(", ") : "—",
+      "Termin": data.termin,
+      "Budżet": data.budzet,
+      "Opis": data.opis || "—"
+    };
+
+    setSubmitting(true);
+    hideSubmitError();
+
+    fetch(FORM_ENDPOINT, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(data)
-    }).then(function(r){ if(!r.ok) throw new Error("HTTP "+r.status); })
-      .catch(function(err){ console.error("Błąd wysyłki briefu:", err); });
-    */
-    // ===== KONIEC: MIEJSCE DO PODMIANY =====
+      headers: { "Content-Type": "application/json", "Accept": "application/json" },
+      body: JSON.stringify(payload)
+    }).then(function(res){
+      if (!res.ok) throw new Error("HTTP " + res.status);
+      renderEstimate(data);
+      showThankYou();
+    }).catch(function(err){
+      console.error("Błąd wysyłki briefu:", err);
+      showSubmitError();
+    }).finally(function(){
+      setSubmitting(false);
+    });
+  }
 
-    showThankYou();
+  function setSubmitting(isSubmitting){
+    btnSubmit.disabled = isSubmitting;
+    btnSubmit.innerHTML = isSubmitting ? "Wysyłam…" : btnSubmitDefaultHTML;
+  }
+
+  function showSubmitError(){
+    if (!submitErrorEl) return;
+    submitErrorEl.hidden = false;
+    submitErrorEl.scrollIntoView({ behavior: reduce ? "auto" : "smooth", block:"center" });
+  }
+  function hideSubmitError(){
+    if (submitErrorEl) submitErrorEl.hidden = true;
   }
 
   function showThankYou(){
     wizardBody.style.display = "none";
     wizardNav.style.display = "none";
     wizard.querySelector(".wizard-top").style.display = "none";
+    hideSubmitError();
     wizardDone.classList.add("show");
     wizardDone.scrollIntoView({ behavior: reduce ? "auto" : "smooth", block:"center" });
   }
