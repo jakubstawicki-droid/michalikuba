@@ -11,6 +11,8 @@
         nie rzucał ReferenceError, gdy pliku brak). -->
 <script>
   document.documentElement.className += " js";
+  // Zablokuj przywracanie pozycji scrolla z poprzedniej wizyty — najwcześniej jak się da.
+  if ("scrollRestoration" in history) { try { history.scrollRestoration = "manual"; } catch(_){} }
   function shotFail(img){
     img.style.display = "none";
     var shot = img.closest(".shot"); if(!shot) return;
@@ -248,8 +250,6 @@ header.nav.scrolled{ border-bottom-color:var(--line); }
 .reveal{ opacity:1; transform:none; }
 .js .reveal{ opacity:0; transform:translateY(18px); transition:opacity .6s ease, transform .6s ease; }
 .js .reveal.in{ opacity:1; transform:none; }
-/* Failsafe: gdy IO nie strzela, odsłaniamy NATYCHMIAST, bez zależności od transition. */
-.reveal-now .reveal{ opacity:1 !important; transform:none !important; transition:none !important; }
 @media (prefers-reduced-motion: reduce){
   .js .reveal{ opacity:1 !important; transform:none !important; transition:none !important; }
 }
@@ -1023,6 +1023,15 @@ footer .foot-inner{ display:flex; flex-wrap:wrap; gap:12px 24px; justify-content
 
 (function(){
 
+  /* ---------- Start zawsze na górze ----------
+     scrollRestoration=manual (ustawione też w <head>) blokuje przywracanie pozycji
+     z poprzedniej wizyty; scrollTo(0,0) wymusza górę. Respektujemy jawny #hash
+     (celowy deep-link z menu), ale przy zwykłym wejściu strona otwiera się na górze.
+     MUSI być przed inicjalizacją reveal, bo ta liczy pozycje względem viewportu. */
+  if ("scrollRestoration" in history) { try { history.scrollRestoration = "manual"; } catch(_){} }
+  if (!location.hash) { window.scrollTo(0, 0); }
+  window.addEventListener("load", function(){ if (!location.hash) window.scrollTo(0, 0); });
+
   /* ---------- Rok w stopce ---------- */
   document.getElementById("year").textContent = new Date().getFullYear();
 
@@ -1035,26 +1044,29 @@ footer .foot-inner{ display:flex; flex-wrap:wrap; gap:12px 24px; justify-content
   /* ---------- Reveal (IntersectionObserver + prefers-reduced-motion) ---------- */
   var reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
   var reveals = document.querySelectorAll(".reveal");
-  function revealAll(){ reveals.forEach(function(el){ el.classList.add("in"); }); }
-  if (reduce || !("IntersectionObserver" in window)) {
-    revealAll();
-  } else {
-    var ioFired = false;
-    var io = new IntersectionObserver(function(entries){
-      ioFired = true; // potwierdzenie, że obserwator naprawdę dostarcza callbacki
-      entries.forEach(function(e){
-        if (e.isIntersecting){ e.target.classList.add("in"); io.unobserve(e.target); }
-      });
-    }, { threshold:0.12, rootMargin:"0px 0px -8% 0px" });
-    reveals.forEach(function(el){ io.observe(el); });
+  function reveal(el){ el.classList.add("in"); }
+  function revealPending(){ reveals.forEach(function(el){ if(!el.classList.contains("in")) reveal(el); }); }
 
-    // FAILSAFE: są konteksty (in-app WhatsApp/Messenger, karty w tle, brak malowania),
-    // gdzie IO istnieje, ale callback nigdy nie przychodzi. Jeśli po załadowaniu nie padł
-    // ani jeden callback — odsłaniamy całą treść. W normalnej przeglądarce ioFired=true,
-    // więc animacja przy scrollu działa jak dotąd i failsafe nic nie zmienia.
-    var failsafe = function(){ if (!ioFired){ document.documentElement.classList.add("reveal-now"); revealAll(); } };
-    window.addEventListener("load", function(){ setTimeout(failsafe, 1000); });
-    setTimeout(failsafe, 2500); // druga siatka, gdyby zdarzenie load nie przyszło
+  if (reduce || !("IntersectionObserver" in window)) {
+    revealPending();
+  } else {
+    var io = new IntersectionObserver(function(entries){
+      entries.forEach(function(e){
+        if (e.isIntersecting){ reveal(e.target); io.unobserve(e.target); }
+      });
+    }, { threshold:0, rootMargin:"0px 0px 10% 0px" }); // zapas u dołu — łapiemy tuż przed wejściem
+
+    reveals.forEach(function(el){
+      // Element, który JEST w kadrze lub NAD nim, nigdy nie wejdzie "od dołu" —
+      // odsłaniamy go od razu. Obserwujemy tylko to, co realnie jest pod foldem.
+      if (el.getBoundingClientRect().top < window.innerHeight){ reveal(el); }
+      else { io.observe(el); }
+    });
+
+    // FAILSAFE per element: po load + 1.5s odsłoń KAŻDY .reveal bez .in,
+    // niezależnie od tego, czy obserwator zadziałał gdziekolwiek indziej.
+    window.addEventListener("load", function(){ setTimeout(revealPending, 1500); });
+    setTimeout(revealPending, 3000); // druga siatka, gdyby 'load' nie przyszło
   }
 
   /* ============================================================
@@ -1244,15 +1256,22 @@ footer .foot-inner{ display:flex; flex-wrap:wrap; gap:12px 24px; justify-content
     btnBack.hidden = current === 1;
     btnNext.hidden = current === TOTAL;
     btnSubmit.hidden = current !== TOTAL;
-    // przewiń górę kreatora w kadr
+  }
+
+  // Przewinięcie i fokus TYLKO przy nawigacji użytkownika (klik „Dalej"/„Wstecz"),
+  // nigdy przy pierwszym renderze na starcie strony.
+  function afterNav(){
     wizard.scrollIntoView({ behavior: reduce ? "auto" : "smooth", block:"start" });
+    var panel = wizard.querySelector('.step-panel[data-step="' + current + '"]');
+    var first = panel && panel.querySelector('input, textarea, select');
+    if (first && first.focus){ try { first.focus({ preventScroll: true }); } catch(_){} }
   }
 
   btnNext.addEventListener("click", function(){
-    if (validateStep(current)){ current = Math.min(TOTAL, current+1); render(); }
+    if (validateStep(current)){ current = Math.min(TOTAL, current+1); render(); afterNav(); }
   });
   btnBack.addEventListener("click", function(){
-    current = Math.max(1, current-1); render();
+    current = Math.max(1, current-1); render(); afterNav();
   });
 
   btnSubmit.addEventListener("click", function(){
