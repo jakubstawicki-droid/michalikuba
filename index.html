@@ -305,13 +305,15 @@ header.nav.scrolled{ border-bottom-color:var(--line); }
 }
 .shot-desk{
   position:absolute; inset:0; width:100%; height:100%;
-  object-fit:cover; object-position:top center; display:block;
+  /* Przy zrzutach stron liczy się LEWY GÓRNY róg (logo, początek nagłówka) —
+     nie środek. Bez tego cover ucina lewą stronę przy węższym kontenerze. */
+  object-fit:cover; object-position:left top; display:block;
 }
 .shot-mob{
-  position:absolute; right:14px; bottom:0;
-  width:26%; max-width:132px; height:auto;
-  border-radius:12px 12px 0 0; border:3px solid var(--surface); border-bottom:none;
-  box-shadow:0 8px 24px rgba(26,25,23,.22);
+  position:absolute; right:16px; bottom:16px;      /* w całości wewnątrz kadru, odsunięty od krawędzi */
+  width:22%; max-width:108px; height:auto;         /* mniejszy — mieści się też na wąskich kartach (390px) */
+  border-radius:12px; border:3px solid var(--surface);
+  box-shadow:0 6px 20px rgba(26,25,23,.20);
   object-fit:cover; object-position:top center; display:block; z-index:2;
 }
 /* Placeholder na screenshot — czysty, celowo oznaczony (gdy brak plików) */
