@@ -640,29 +640,6 @@ footer .foot-inner{ display:flex; flex-wrap:wrap; gap:12px 24px; justify-content
 </head>
 <body>
 
-<!-- ===== Netlify Forms — atrapa wykrywana przy deployu =====
-     Netlify parsuje statyczny HTML w poszukiwaniu formularzy; główny kreator jest
-     obsługiwany przez JS (submit fetch-em), więc dokładamy tę ukrytą atrapę z pełną
-     listą pól. To oficjalny sposób dla formularzy obsługiwanych JS-em. Musi mieć te
-     same name= co realna wysyłka; wartości nieistotne. Poza głównym <form>. -->
-<form name="brief" method="POST" data-netlify="true" data-netlify-honeypot="bot-field" hidden>
-  <input type="hidden" name="form-name" value="brief">
-  <input type="text" name="bot-field">
-  <input type="text" name="potrzeba">
-  <input type="text" name="masz_strone">
-  <input type="text" name="obecna_strona">
-  <input type="text" name="funkcje">
-  <input type="text" name="materialy">
-  <input type="text" name="termin">
-  <input type="text" name="budzet">
-  <input type="text" name="imie">
-  <input type="text" name="firma">
-  <input type="email" name="email">
-  <input type="tel" name="telefon">
-  <textarea name="opis"></textarea>
-  <input type="text" name="rodo">
-</form>
-
 <a href="#portfolio" class="skip">Przejdź do portfolio</a>
 
 <!-- ================= NAV ================= -->
@@ -911,12 +888,10 @@ footer .foot-inner{ display:flex; flex-wrap:wrap; gap:12px 24px; justify-content
       <p>Cztery krótkie kroki. Im więcej nam powiesz, tym konkretniejsza pierwsza rozmowa i szybsza wycena.</p>
     </div>
 
-    <form class="wizard reveal" id="wizard" name="brief" method="POST"
-          data-netlify="true" data-netlify-honeypot="bot-field" netlify>
-      <!-- Netlify Forms: pola wymagane przez backend. form-name musi = name formularza.
-           bot-field to honeypot Netlify (ukryty; boty go wypełniają, ludzie nie). -->
-      <input type="hidden" name="form-name" value="brief">
-      <p class="netlify-hp" hidden><label>Nie wypełniaj: <input name="bot-field"></label></p>
+    <form class="wizard reveal" id="wizard" method="POST" action="#">
+      <!-- Honeypot: ukryte pole, którego ludzie nie wypełniają. Backend (/api/briefs)
+           odrzuca zgłoszenie, gdy bot-field jest niepuste. -->
+      <input type="text" name="bot-field" tabindex="-1" autocomplete="off" hidden>
       <div class="wizard-top">
         <div class="progress-meta">
           <span class="stepname" id="stepName">Czego potrzebujesz</span>
@@ -1441,28 +1416,37 @@ footer .foot-inner{ display:flex; flex-wrap:wrap; gap:12px 24px; justify-content
     estimateBox.hidden = false;
   }
 
-  function submitBrief(data){
-    var honeypot = wizard.querySelector('[name="firma_www"]');
-    if (honeypot && honeypot.value){
-      // Pole wypełnił bot — cichy fałszywy sukces, bez wysyłki.
-      renderEstimate(data);
-      showThankYou();
-      return;
-    }
+  // Backend briefów (Railway). Wysyłamy formState jako JSON: tablice pozostają
+  // tablicami, rodo jest booleanem — dlatego NIE używamy FormData/urlencoded.
+  var BRIEF_ENDPOINT = "https://server-production-a6fc.up.railway.app/api/briefs";
 
+  function submitBrief(data){            // data = formState
     setSubmitting(true);
     hideSubmitError();
 
-    // Netlify Forms: kodujemy CAŁY formularz. Wszystkie 4 kroki są w DOM (ukrywane
-    // przez display:none, więc pola nadal istnieją) — FormData łapie komplet.
-    // Checkboxy (funkcje, materialy) serializują się jako wiele wartości tego samego
-    // klucza. form-name=brief (ukryte pole) jest wymagane przez Netlify.
-    var body = new URLSearchParams(new FormData(wizard)).toString();
+    var botField = wizard.querySelector('[name="bot-field"]');
+    var payload = {
+      imie:          data.imie,
+      firma:         data.firma,
+      email:         data.email,
+      telefon:       data.telefon,
+      potrzeba:      data.potrzeba,
+      masz_strone:   data.masz_strone,
+      obecna_strona: data.obecna_strona,
+      funkcje:       data.funkcje,          // tablica JSON
+      materialy:     data.materialy,        // tablica JSON
+      termin:        data.termin,
+      budzet:        data.budzet,
+      opis:          data.opis,
+      rodo:          data.rodo,             // boolean
+      "bot-field":   botField ? botField.value : ""
+    };
 
-    fetch("/", {
+    fetch(BRIEF_ENDPOINT, {
       method: "POST",
-      headers: { "Content-Type": "application/x-www-form-urlencoded" },
-      body: body
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload)
+      // bez credentials — endpoint publiczny, nie wymaga ciasteczek
     }).then(function(res){
       if (!res.ok) throw new Error("HTTP " + res.status);
       renderEstimate(data);
