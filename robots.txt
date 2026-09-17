@@ -2,4 +2,4 @@ User-agent: *
 Allow: /
 Disallow: /admin.html
 
-Sitemap: https://jakubstawicki-droid.github.io/michalikuba/sitemap.xml
+Sitemap: https://webandmore.pl/sitemap.xml
